@@ -1,0 +1,12 @@
+AÇIK KURAN:
+https://github.com/acik-kuran/acikkuran-api/tree/main
+https://api.acikkuran.com/surah/6/verse/1
+
+EZAN VAKTİ:
+https://ezanvakti.emushaf.net
+https://ezanvakti.emushaf.net/vakitler/9800
+
+KURAN SES:
+https://everyayah.com
+https://everyayah.com/data/AbdulSamad_64kbps_QuranExplorer.Com/001006.mp3
+https://everyayah.com/data/images_png/1_6.png

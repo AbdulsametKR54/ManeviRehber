@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Log> Logs => Set<Log>();
     public DbSet<DailyContentCategory> DailyContentCategories => Set<DailyContentCategory>();
     public DbSet<UserDashboardLayout> UserDashboardLayouts => Set<UserDashboardLayout>();
+    public DbSet<ZikrRecord> ZikrRecords => Set<ZikrRecord>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => base.SaveChangesAsync(cancellationToken);
 

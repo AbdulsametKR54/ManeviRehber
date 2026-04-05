@@ -13,12 +13,16 @@ export function SearchBar({ value, onChange, placeholder = "Ara..." }: SearchBar
     const [searchTerm, setSearchTerm] = useState(value);
 
     useEffect(() => {
+        // Only trigger onChange if the search term is different from the current prop value
+        // to avoid unnecessary re-triggers from parent re-renders
+        if (searchTerm === value) return;
+
         const timer = setTimeout(() => {
             onChange(searchTerm);
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [searchTerm, onChange]);
+    }, [searchTerm, onChange, value]);
 
     useEffect(() => {
         setSearchTerm(value);

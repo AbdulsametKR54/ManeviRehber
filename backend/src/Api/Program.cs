@@ -118,6 +118,13 @@ builder.Services.AddScoped<ISettingRepository, SettingRepository>();
 builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IQuranRepository, QuranRepository>();
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IQuranOpenApiService, QuranOpenApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.acikkuran.com/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddScoped<IQuranInternalService, QuranInternalService>();
 builder.Services.AddScoped<IQuranService, QuranService>();
 builder.Services.AddHttpClient<IEzanVaktiService, EzanVaktiService>(client =>
 {
@@ -156,6 +163,7 @@ if (Directory.Exists(quranGorsellerPath))
     });
 }
 app.UseAuthentication();
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthorization();
 app.MapControllers();

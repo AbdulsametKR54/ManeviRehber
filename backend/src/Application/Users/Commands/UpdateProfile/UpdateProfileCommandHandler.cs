@@ -35,7 +35,27 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
             throw new Exception("Kullanıcı bulunamadı.");
 
         var oldEmail = user.Email.Value;
+        var oldName = user.Name;
+        var oldLanguage = user.Language;
         bool changed = false;
+
+        if (!string.IsNullOrWhiteSpace(request.Name) && request.Name != oldName)
+        {
+            user.ChangeName(request.Name);
+            changed = true;
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Language))
+        {
+            if (Enum.TryParse<Domain.Enums.Language>(request.Language, true, out var langEnum))
+            {
+                if (user.Language != langEnum)
+                {
+                    user.ChangeLanguage(langEnum);
+                    changed = true;
+                }
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Email) && request.Email != oldEmail)
         {
@@ -61,6 +81,10 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
                 JsonConvert.SerializeObject(new { 
                     oldEmail = oldEmail,
                     newEmail = user.Email.Value,
+                    oldName = oldName,
+                    newName = user.Name,
+                    oldLanguage = oldLanguage.ToString(),
+                    newLanguage = user.Language.ToString(),
                     targetUserId = user.Id,
                     ip = _currentUserService.IpAddress
                 }),

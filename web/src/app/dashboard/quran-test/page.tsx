@@ -6,6 +6,7 @@ import { apiQuran } from "@/lib/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,9 @@ import {
   CheckCircle2, 
   AlertCircle,
   Database,
-  Music
+  Music,
+  Search,
+  BookOpen
 } from "lucide-react";
 
 export default function QuranTestPanel() {
@@ -25,15 +28,29 @@ export default function QuranTestPanel() {
   
   const [selectedSurah, setSelectedSurah] = useState<string>("");
   const [selectedAyah, setSelectedAyah] = useState<string>("");
-  const [reciter, setReciter] = useState<string>("AbdulSamad"); // Default reciter
-  const [mealLanguage, setMealLanguage] = useState<string>("tr"); // Default meal language
+  const [reciter, setReciter] = useState<string>("AbdulSamad");
+  const [mealLanguage, setMealLanguage] = useState<string>("tr");
   const [integrityResult, setIntegrityResult] = useState<any>(null);
-  const [externalTranslation, setExternalTranslation] = useState<any>(null);
+  
+  // Media States
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [mealAudioUrl, setMealAudioUrl] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [surahImages, setSurahImages] = useState<Record<number, string[]>>({});
   
+  // OpenAPI States
+  const [openSurahDetails, setOpenSurahDetails] = useState<any>(null);
+  const [openVerseDetail, setOpenVerseDetail] = useState<any>(null);
+  const [openVerseTranslations, setOpenVerseTranslations] = useState<any>(null);
+  const [openVerseParts, setOpenVerseParts] = useState<any>(null);
+
+  const [latinRoot, setLatinRoot] = useState<string>("");
+  const [openRootDetails, setOpenRootDetails] = useState<any>(null);
+  const [openRootVerseParts, setOpenRootVerseParts] = useState<any>(null);
+
+  const [pageNumber, setPageNumber] = useState<string>("1");
+  const [openPageVerses, setOpenPageVerses] = useState<any>(null);
+
   // Playlist state
   const [playlist, setPlaylist] = useState<string[]>([]);
   const [playlistAyahNumbers, setPlaylistAyahNumbers] = useState<number[]>([]);
@@ -59,52 +76,96 @@ export default function QuranTestPanel() {
   // Metadata for JSON panel
   const currentAyahMetadata = ayahs.find((a: any) => a.ayahNumber.toString() === selectedAyah);
 
-  // Reset ayah when switching to translation tab
-  useEffect(() => {
-    if (activeTab === "translation") {
-      setSelectedAyah("");
-    }
-  }, [activeTab]);
-
   // Sync images with playlist/selection
   useEffect(() => {
     if (isPlaylistPlaying && currentPlaylistIndex >= 0) {
       const currentAyahNum = playlistAyahNumbers[currentPlaylistIndex];
       setImages(surahImages[currentAyahNum] || []);
-      // Sync the selection dropdown too if desired, though usually playlist is automatic
     }
   }, [currentPlaylistIndex, isPlaylistPlaying, surahImages, playlistAyahNumbers]);
 
-  // External API call for translation & Media
+  // Handle data fetching for core media and api proxy
   useEffect(() => {
-    if (selectedSurah && selectedAyah && !isPlaylistPlaying) {
-      // Translation text
-      fetch(`https://api.acikkuran.com/surah/${selectedSurah}/verse/${selectedAyah}`)
-        .then(res => res.json())
-        .then(data => setExternalTranslation(data.data))
-        .catch(err => console.error("External API error:", err));
-      
+    // 1. Ayet state'lerini sıfırla (Eski veri kalmasın ve çökmeyi engellesin)
+    setOpenVerseDetail(null);
+    setOpenVerseTranslations(null);
+    setOpenVerseParts(null);
+    setAudioUrl(null);
+    setImages([]);
+
+    // 2. Eğer "Ayet Seçilmedi" ("0") değilse çalışır
+    if (selectedSurah && selectedAyah && selectedAyah !== "0" && !isPlaylistPlaying) {
       // Images (Single selection mode)
-      apiQuran.getAyahImages(parseInt(selectedSurah), parseInt(selectedAyah)).then(res => {
-        setImages(res.data);
-      });
+      apiQuran.getAyahImages(parseInt(selectedSurah), parseInt(selectedAyah))
+        .then(res => setImages(res.data || []))
+        .catch(() => setImages([]));
 
       // Single Ayah Audio
-      apiQuran.getAyahAudio(reciter, parseInt(selectedSurah), parseInt(selectedAyah)).then(res => {
-          const fullAudioUrl = `${backendBaseUrl}${res.data.audioPath}`;
-          setAudioUrl(fullAudioUrl);
-      });
+      apiQuran.getAyahAudio(reciter, parseInt(selectedSurah), parseInt(selectedAyah))
+        .then(res => {
+          if (res.data?.audioPath) {
+             const fullAudioUrl = `${backendBaseUrl}${res.data.audioPath}`;
+             setAudioUrl(fullAudioUrl);
+          }
+      }).catch(() => setAudioUrl(null));
+
+      // API 2: Ayet Detayı
+      apiQuran.getOpenVerseDetail(parseInt(selectedSurah), parseInt(selectedAyah))
+        .then(res => setOpenVerseDetail(res.data?.data || res.data))
+        .catch(err => console.error(err));
+
+      // API 3: Ayet Mealleri
+      apiQuran.getOpenVerseTranslations(parseInt(selectedSurah), parseInt(selectedAyah))
+        .then(res => setOpenVerseTranslations(res.data?.data || res.data))
+        .catch(err => console.error(err));
+
+      // API 6: Ayet VerseParts
+      apiQuran.getOpenVerseParts(parseInt(selectedSurah), parseInt(selectedAyah))
+        .then(res => setOpenVerseParts(res.data?.data || res.data))
+        .catch(err => console.error(err));
     }
 
     if (selectedSurah) {
       // Meal Audio
       apiQuran.getMealAudio(mealLanguage, parseInt(selectedSurah)).then(res => {
-        setMealAudioUrl(res.data.url);
+         if (res.data?.url) setMealAudioUrl(res.data.url);
       }).catch(() => setMealAudioUrl(null));
+
+      // API 1: Sure Detayları
+      apiQuran.getOpenSurahDetails(parseInt(selectedSurah))
+        .then(res => setOpenSurahDetails(res.data?.data || res.data))
+        .catch(err => console.error(err));
     } else {
       setMealAudioUrl(null);
+      setOpenSurahDetails(null);
     }
-  }, [selectedSurah, selectedAyah, reciter, mealLanguage]);
+  }, [selectedSurah, selectedAyah, reciter, mealLanguage, isPlaylistPlaying]);
+
+  const handleRootSearch = () => {
+    if (!latinRoot) return;
+    setOpenRootDetails(null);
+    setOpenRootVerseParts(null);
+    
+    // API 4: Kök Detayı
+    apiQuran.getOpenRootDetails(latinRoot)
+       .then(res => setOpenRootDetails(res.data?.data || res.data))
+       .catch(err => console.error(err));
+       
+    // API 5: Kökten Geçen Kelimeler (Verseparts)
+    apiQuran.getOpenRootVerseParts(latinRoot)
+       .then(res => setOpenRootVerseParts(res.data?.data || res.data))
+       .catch(err => console.error(err));
+  };
+
+  const handlePageSearch = () => {
+    if (!pageNumber) return;
+    setOpenPageVerses(null);
+    
+    // API 7: Sayfa (Mushaf)
+    apiQuran.getOpenPageVerses(parseInt(pageNumber))
+       .then(res => setOpenPageVerses(res.data?.data || res.data))
+       .catch(err => console.error(err));
+  };
 
   const handleIntegrityCheck = async () => {
     if (!selectedSurah) return;
@@ -144,7 +205,7 @@ export default function QuranTestPanel() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Kur'an Test Paneli</h1>
-          <p className="text-muted-foreground">Kur'an veri setini (ses, görsel, metadata) doğrulamak için araçlar.</p>
+          <p className="text-muted-foreground">Kur'an API proxy ve lokal dataset doğrulama araçları.</p>
         </div>
         <Badge variant="outline" className="px-3 py-1 text-sm bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400">
           Read-Only Mode
@@ -198,7 +259,7 @@ export default function QuranTestPanel() {
                   <SelectValue placeholder="Ayet Seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="0">Ayet Seçilmedi (Sure Bazlı)</SelectItem>
+                  <SelectItem value="0">Ayet Seçilmedi</SelectItem>
                   {ayahs.map((a: any) => (
                     <SelectItem key={a.ayahNumber} value={a.ayahNumber.toString()}>
                       Ayet {a.ayahNumber}
@@ -231,18 +292,19 @@ export default function QuranTestPanel() {
           </CardContent>
         </Card>
 
-        {/* content Panel */}
+        {/* Content Panel */}
         <div className="md:col-span-3 space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-slate-100 dark:bg-slate-800 p-1">
-              <TabsTrigger value="preview">Önizleme</TabsTrigger>
-              <TabsTrigger value="translation">Meal (Dış API)</TabsTrigger>
-              <TabsTrigger value="metadata">Metadata Debug</TabsTrigger>
-              <TabsTrigger value="integrity">Doğrulama Raporu</TabsTrigger>
+            <TabsList className="flex flex-wrap h-auto bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+              <TabsTrigger value="preview" className="flex-1 text-xs sm:text-sm">Medya</TabsTrigger>
+              <TabsTrigger value="openapi-surah" className="flex-1 text-xs sm:text-sm">Sûre/Ayet</TabsTrigger>
+              <TabsTrigger value="openapi-root" className="flex-1 text-xs sm:text-sm">Kök</TabsTrigger>
+              <TabsTrigger value="openapi-page" className="flex-1 text-xs sm:text-sm">Sayfa</TabsTrigger>
+              <TabsTrigger value="metadata" className="flex-1 text-xs sm:text-sm">Metadata</TabsTrigger>
+              <TabsTrigger value="integrity" className="flex-1 text-xs sm:text-sm">Rapor</TabsTrigger>
             </TabsList>
 
             <TabsContent value="preview" className="mt-6 space-y-6">
-              {/* Image Preview Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-md flex items-center">
@@ -250,7 +312,7 @@ export default function QuranTestPanel() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {!selectedAyah && !isPlaylistPlaying ? (
+                  {(!selectedAyah || selectedAyah === "0") && !isPlaylistPlaying ? (
                      <p className="text-sm text-muted-foreground text-center py-4 italic">Lütfen bir ayet seçin</p>
                   ) : (
                     <div className="grid grid-cols-1 gap-4">
@@ -273,7 +335,6 @@ export default function QuranTestPanel() {
                 </CardContent>
               </Card>
 
-              {/* Audio Player Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-md flex items-center">
@@ -281,17 +342,15 @@ export default function QuranTestPanel() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {!selectedAyah && !isPlaylistPlaying ? (
-                    <p className="text-sm text-muted-foreground text-center py-4 italic">Lütfen bir ayet seçin veya "Tüm Sureyi Oynat" butonuna basın</p>
+                  {(!selectedAyah || selectedAyah === "0") && !isPlaylistPlaying ? (
+                    <p className="text-sm text-muted-foreground text-center py-4 italic">Lütfen bir ayet seçin</p>
                   ) : (
                     <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-semibold text-primary">
-                          {isPlaylistPlaying ? `Playlist: Ayet ${playlistAyahNumbers[currentPlaylistIndex]} (${currentPlaylistIndex + 1} / ${playlist.length})` : `Tek Ayet: ${selectedAyah}`}
+                          {isPlaylistPlaying ? `Playlist: Ayet ${playlistAyahNumbers[currentPlaylistIndex]}` : `Tek Ayet: ${selectedAyah}`}
                         </span>
-                        {isPlaylistPlaying && (
-                          <Badge variant="secondary" className="bg-primary/10 text-primary border-none">Oynatılıyor...</Badge>
-                        )}
+                        {isPlaylistPlaying && <Badge variant="secondary" className="bg-primary/10 text-primary border-none">Oynatılıyor...</Badge>}
                       </div>
                       {(isPlaylistPlaying ? playlist[currentPlaylistIndex] : audioUrl) && (
                         <audio 
@@ -300,44 +359,23 @@ export default function QuranTestPanel() {
                           className="w-full" 
                           src={(isPlaylistPlaying ? playlist[currentPlaylistIndex] : audioUrl) || undefined}
                           onEnded={handleAyahEnded}
-                        >
-                          Your browser does not support the audio element.
-                        </audio>
+                        />
                       )}
-                      <p className="mt-2 text-xs text-slate-500 font-mono break-all">
-                        {typeof (isPlaylistPlaying ? playlist[currentPlaylistIndex] : audioUrl) === 'string' 
-                          ? (isPlaylistPlaying ? playlist[currentPlaylistIndex] : audioUrl) 
-                          : 'No URL'}
-                      </p>
                     </div>
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
 
-            <TabsContent value="translation" className="mt-6 space-y-6">
-              {/* Meal Audio Player */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <div className="space-y-1">
-                    <CardTitle className="text-md flex items-center">
-                      <Music className="mr-2 h-5 w-5 text-primary" /> Sure Bazlı Meal Seslendirmesi
-                    </CardTitle>
-                    <CardDescription>Açık Kur'an Mp3 Arşivi</CardDescription>
+                     <CardTitle className="text-md flex items-center">
+                       <Music className="mr-2 h-5 w-5 text-primary" /> Meal Seslendirmesi
+                     </CardTitle>
                   </div>
                   <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-md">
-                    <button 
-                      onClick={() => setMealLanguage("tr")}
-                      className={`px-3 py-1 text-xs font-semibold rounded ${mealLanguage === "tr" ? 'bg-white shadow-sm' : 'text-muted-foreground'}`}
-                    >
-                      TR
-                    </button>
-                    <button 
-                      onClick={() => setMealLanguage("en")}
-                      className={`px-3 py-1 text-xs font-semibold rounded ${mealLanguage === "en" ? 'bg-white shadow-sm' : 'text-muted-foreground'}`}
-                    >
-                      EN
-                    </button>
+                    <button onClick={() => setMealLanguage("tr")} className={`px-3 py-1 text-xs font-semibold rounded ${mealLanguage === "tr" ? 'bg-white shadow-sm' : 'text-muted-foreground'}`}>TR</button>
+                    <button onClick={() => setMealLanguage("en")} className={`px-3 py-1 text-xs font-semibold rounded ${mealLanguage === "en" ? 'bg-white shadow-sm' : 'text-muted-foreground'}`}>EN</button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -346,80 +384,212 @@ export default function QuranTestPanel() {
                   ) : (
                     <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200">
                       {mealAudioUrl ? (
-                        <audio controls className="w-full" src={mealAudioUrl}>
-                          Your browser does not support the audio element.
-                        </audio>
+                         <audio controls className="w-full" src={mealAudioUrl} />
                       ) : (
-                        <p className="text-xs text-muted-foreground italic text-center">Bu sure için meal dosyası yüklenemedi veya desteklenmiyor.</p>
+                         <p className="text-xs text-muted-foreground italic text-center">Dosya desteklenmiyor.</p>
                       )}
-                      <p className="mt-2 text-[10px] text-slate-500 font-mono break-all">
-                        {typeof mealAudioUrl === 'string' ? mealAudioUrl : 'No URL'}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-md flex items-center">
-                    <FileText className="mr-2 h-5 w-5 text-primary" /> Açık Kur'an Metin Verileri
-                  </CardTitle>
-                  <CardDescription>Canlı API Verileri</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {!externalTranslation ? (
-                    <p className="text-sm text-muted-foreground text-center py-4 italic">Lütfen bir ayet seçin</p>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="bg-emerald-50 dark:bg-emerald-950/20 p-6 rounded-xl border-l-4 border-emerald-500">
-                        <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-300 uppercase mb-2">Arapça Metin</h4>
-                        <p className="text-2xl leading-relaxed text-right font-serif" dir="rtl">{externalTranslation.verse}</p>
-                      </div>
-
-                      <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-xl border border-slate-200">
-                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase mb-2">Meal ({externalTranslation.translation.author})</h4>
-                         <p className="text-lg leading-relaxed">{externalTranslation.translation.text}</p>
-                      </div>
-
-                      <div className="bg-blue-50 dark:bg-blue-950/20 p-6 rounded-xl border border-blue-200">
-                         <h4 className="text-sm font-bold text-blue-700 dark:text-blue-300 uppercase mb-2">Transkripsiyon</h4>
-                         <p className="text-md leading-relaxed italic">
-                           {typeof externalTranslation.transcription === 'string' ? externalTranslation.transcription : ''}
-                         </p>
-                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
             </TabsContent>
 
-            <TabsContent value="metadata" className="mt-6">
+            <TabsContent value="openapi-surah" className="mt-6 space-y-6">
+              {/* API 1 */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-md flex items-center">
-                    <Database className="mr-2 h-5 w-5 text-primary" /> Metadata JSON View
-                  </CardTitle>
+                  <CardTitle className="text-sm font-bold text-slate-500 uppercase">1. Sûre Detayı</CardTitle>
                 </CardHeader>
                 <CardContent>
-                   {!currentAyahMetadata ? (
-                     <p className="text-sm text-muted-foreground text-center py-4 italic">Lütfen bir ayet seçin</p>
+                  {!openSurahDetails || typeof openSurahDetails !== 'object' ? <p className="text-sm italic text-muted-foreground">Sure seçimi bekleniyor veya veri yok</p> : (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-slate-50 p-4 rounded-xl">
+                      <div><span className="text-slate-500 block text-xs">Adı</span><strong className="font-serif">{openSurahDetails.name} ({openSurahDetails.name_original})</strong></div>
+                      <div><span className="text-slate-500 block text-xs">Ayet Sayısı</span><strong>{openSurahDetails.verse_count}</strong></div>
+                      <div><span className="text-slate-500 block text-xs">Açıklama</span><strong className="capitalize">{openSurahDetails.name_translation_tr}</strong></div>
+                      <div><span className="text-slate-500 block text-xs">Slug</span><strong>{openSurahDetails.slug}</strong></div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* API 2 & 6 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-bold text-slate-500 uppercase">2. Ayet Detayı</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {!openVerseDetail || typeof openVerseDetail !== 'object' ? <p className="text-sm italic text-muted-foreground">Ayet seçimi bekleniyor veya veri yok</p> : (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-emerald-50 rounded-lg">
+                          <h4 className="text-right text-3xl font-serif text-emerald-900" dir="rtl">{openVerseDetail.verse}</h4>
+                        </div>
+                        <p className="p-4 bg-slate-50 italic text-slate-700 rounded-lg">{openVerseDetail.transcription}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-bold text-slate-500 uppercase">6. Ayet VerseParts</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {!openVerseParts || !Array.isArray(openVerseParts) || openVerseParts.length === 0 ? <p className="text-sm italic text-muted-foreground">Ayet seçimi bekleniyor veya veri bulunamadı</p> : (
+                      <div className="flex flex-wrap gap-2 justify-end" dir="rtl">
+                        {openVerseParts.map((vp: any, idx: number) => (
+                          <div key={idx} className="bg-slate-50 border p-3 rounded-lg text-center shadow-sm">
+                            <p className="font-serif text-xl">{vp.arabic || vp.word}</p>
+                            <p className="text-[10px] text-emerald-700 font-semibold mb-1">{vp.translation_tr || vp.translation}</p>
+                            {vp.root && typeof vp.root === 'object' && <Badge variant="secondary" className="text-[10px] bg-sky-100 text-sky-800 border-none">{vp.root.latin || vp.root.arabic}</Badge>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* API 3 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold text-slate-500 uppercase">3. Ayet Mealleri</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {!openVerseTranslations || !Array.isArray(openVerseTranslations) ? <p className="text-sm italic text-muted-foreground">Ayet seçimi bekleniyor veya veri yok</p> : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2">
+                       {openVerseTranslations.map((t: any) => (
+                          <div key={t.id} className="p-4 border rounded-xl bg-white shadow-sm hover:border-primary/30 transition-colors">
+                            <div className="flex items-center gap-2 mb-2">
+                               <Badge variant="outline" className="text-[10px] bg-slate-100 text-slate-600 border-none">{t.author?.language || 'TR'}</Badge>
+                               <span className="font-semibold text-xs text-slate-800">{t.author?.name || "Bilinmeyen Çevirmen"}</span>
+                            </div>
+                            <p className="text-sm text-slate-700 leading-relaxed">{t.text}</p>
+                          </div>
+                       ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="openapi-root" className="mt-6 space-y-6">
+               <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-bold text-slate-500 uppercase">4. Kök Doğrulama</CardTitle>
+                    <CardDescription>Arapça Kök analizi için Latin (örn: slm, ktb) kullanın.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                     <div className="flex gap-2 max-w-sm mb-6">
+                       <Input 
+                         placeholder="Latin form..." 
+                         value={latinRoot} 
+                         onChange={(e) => setLatinRoot(e.target.value)}
+                         onKeyDown={(e) => e.key === 'Enter' && handleRootSearch()}
+                       />
+                       <Button onClick={handleRootSearch}><Search className="w-4 h-4 mr-2" /> Ara</Button>
+                     </div>
+
+                     {openRootDetails && typeof openRootDetails === 'object' && (
+                       <div className="inline-block p-6 bg-emerald-50 border border-emerald-100 rounded-xl text-center">
+                         <p className="text-4xl font-serif text-emerald-900 mb-2">{openRootDetails.arabic}</p>
+                         <p className="text-sm text-emerald-700 uppercase tracking-widest">{openRootDetails.latin}</p>
+                       </div>
+                     )}
+                  </CardContent>
+               </Card>
+
+               {/* API 5 */}
+               <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-bold text-slate-500 uppercase">5. Kökten Geçen Ayet Parçaları</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {!openRootVerseParts || !Array.isArray(openRootVerseParts) ? (
+                      <p className="text-sm text-muted-foreground italic">Henüz arama yapılmadı veya sonuç yok.</p>
+                    ) : (
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        {openRootVerseParts.map((vp: any, idx: number) => (
+                          <div key={idx} className="p-3 bg-slate-50 hover:bg-slate-100 border rounded-xl text-center transition-colors">
+                            <p className="font-serif text-2xl text-slate-800 mb-1">{vp.arabic || vp.word}</p>
+                            <p className="text-[10px] text-primary font-bold">{vp.translation_tr || vp.translation}</p>
+                            <Badge variant="outline" className="mt-2 text-[9px] text-slate-400">AYET: {vp.verse?.verse_number || vp.verseId}</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+               </Card>
+            </TabsContent>
+
+            <TabsContent value="openapi-page" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-bold text-slate-500 uppercase">7. Sayfa Bazlı Mushaf</CardTitle>
+                  <CardDescription>1 ile 604 arasında bir sayfa numarası girin.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <div className="flex gap-2 max-w-sm mb-6">
+                     <Input 
+                       type="number" min="1" max="604" 
+                       placeholder="Sayfa No" 
+                       value={pageNumber} 
+                       onChange={(e) => setPageNumber(e.target.value)}
+                       onKeyDown={(e) => e.key === 'Enter' && handlePageSearch()}
+                     />
+                     <Button onClick={handlePageSearch} variant="secondary"><BookOpen className="w-4 h-4 mr-2" /> Getir</Button>
+                   </div>
+
+                   {openPageVerses && Array.isArray(openPageVerses) ? (
+                     <div className="p-8 bg-amber-50/50 dark:bg-slate-900 border border-amber-100 rounded-2xl shadow-inner">
+                        <div className="text-center mb-6">
+                           <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">Sayfa {pageNumber}</Badge>
+                        </div>
+                        <div className="flex flex-wrap gap-x-2 gap-y-4 justify-center" dir="rtl">
+                           {openPageVerses.map((v: any, idx: number) => (
+                             <span key={idx} className="text-2xl lg:text-3xl font-serif text-amber-950 dark:text-amber-100 leading-[2.5] inline-flex items-center">
+                               {v.verse}
+                               <span className="mx-2 inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-amber-300 text-[10px] text-amber-700 font-bold bg-white">
+                                 {v.verse_number || v.verseNumber}
+                               </span>
+                             </span>
+                           ))}
+                        </div>
+                     </div>
                    ) : (
-                    <pre className="bg-slate-900 text-slate-100 p-6 rounded-xl overflow-x-auto text-xs font-mono">
-                      {JSON.stringify({
-                        ...currentAyahMetadata,
-                        audioUrl,
-                        images: images.map(img => `${backendBaseUrl}${img}`),
-                        externalTranslation
-                      }, null, 2)}
-                    </pre>
+                     <p className="text-sm text-muted-foreground italic">Sayfa verisi bekleniyor...</p>
                    )}
                 </CardContent>
               </Card>
             </TabsContent>
 
+            <TabsContent value="metadata" className="mt-6">
+               <Card>
+                 <CardHeader>
+                   <CardTitle className="text-md flex items-center">
+                     <Database className="mr-2 h-5 w-5 text-primary" /> Debug Metadata
+                   </CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                    {!currentAyahMetadata && !openSurahDetails ? (
+                      <p className="text-sm text-muted-foreground text-center py-4 italic">Lütfen bir işlem yapın</p>
+                    ) : (
+                      <pre className="bg-slate-900 text-green-400 p-6 rounded-xl overflow-x-auto text-[10px] font-mono leading-relaxed shadow-inner border border-slate-800">
+                        {JSON.stringify({
+                          internalMetadata: currentAyahMetadata,
+                          openSurahDetails,
+                          openVerseDetail,
+                          page: pageNumber,
+                          root: latinRoot
+                        }, null, 2)}
+                      </pre>
+                    )}
+                 </CardContent>
+               </Card>
+            </TabsContent>
+
             <TabsContent value="integrity" className="mt-6">
-              <Card>
+               <Card>
                 <CardHeader>
                   <CardTitle className="text-md flex items-center">
                     <CheckCircle2 className="mr-2 h-5 w-5 text-primary" /> Eksik Dosya Raporu

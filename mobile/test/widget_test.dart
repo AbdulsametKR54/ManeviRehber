@@ -9,11 +9,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mobile/main.dart';
+import 'package:mobile/utils/theme_manager.dart';
+import 'package:mobile/utils/language_manager.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const ManeviRehberApp());
+    final themeManager = ThemeManager();
+    final languageManager = LanguageManager();
+    await tester.pumpWidget(ManeviRehberApp(
+      themeManager: themeManager,
+      languageManager: languageManager,
+    ));
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);

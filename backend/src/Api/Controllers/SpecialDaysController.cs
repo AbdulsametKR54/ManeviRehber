@@ -12,7 +12,7 @@ using Application.SpecialDays.Queries.GetPagedSpecialDaysQuery;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = "Admin,Editor")]
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class SpecialDaysController : ControllerBase
@@ -41,6 +41,7 @@ public class SpecialDaysController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Create(CreateSpecialDayCommand command)
     {
         return Ok(await _mediator.Send(command));
@@ -50,6 +51,7 @@ public class SpecialDaysController : ControllerBase
     /// Özel gün kaydını günceller.
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Update(Guid id, UpdateSpecialDayCommand command)
     {
         if (id != command.Id)
@@ -63,6 +65,7 @@ public class SpecialDaysController : ControllerBase
     /// Özel gün kaydını siler.
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _mediator.Send(new DeleteSpecialDayCommand { Id = id });

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {   
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PrayerTimeController : ControllerBase
@@ -24,6 +24,7 @@ namespace Api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create (CreatePrayerTimeCommand command)
         {
             var id = await _mediator.Send(command);

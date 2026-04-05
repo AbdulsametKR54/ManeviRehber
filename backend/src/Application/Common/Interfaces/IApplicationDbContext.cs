@@ -17,6 +17,7 @@ public interface IApplicationDbContext
     DbSet<Log> Logs { get; }
     DbSet<DailyContentCategory> DailyContentCategories { get; }
     DbSet<UserDashboardLayout> UserDashboardLayouts { get; }
+    DbSet<ZikrRecord> ZikrRecords { get; }
 
     // SaveChanges
     Task<int> SaveChangesAsync(CancellationToken cancellationToken);

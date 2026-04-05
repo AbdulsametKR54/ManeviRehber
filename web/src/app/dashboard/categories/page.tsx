@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiCategory } from "@/lib/api";
 import { Category } from "@/types/models";
@@ -20,7 +20,7 @@ export default function CategoryPage() {
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -28,10 +28,10 @@ export default function CategoryPage() {
             if (data?.items) {
                 setCategories(data.items);
                 setTotalCount(data.totalCount);
-                if (data.page) setPage(data.page);
-                if (data.pageSize) setPageSize(data.pageSize);
+                if (data.page && data.page !== page) setPage(data.page);
+                if (data.pageSize && data.pageSize !== pageSize) setPageSize(data.pageSize);
             } else {
-                setCategories(data || []);
+                setCategories(Array.isArray(data) ? data : []);
             }
         } catch (error) {
             console.error("Kategoriler getirilemedi:", error);
@@ -39,21 +39,21 @@ export default function CategoryPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [search, page, pageSize]);
 
     useEffect(() => {
         fetchCategories();
-    }, [search, page, pageSize]);
+    }, [fetchCategories]);
 
-    const handleSearchChange = (val: string) => {
+    const handleSearchChange = useCallback((val: string) => {
         setSearch(val);
         setPage(1); // Reset page on search
-    };
+    }, []);
 
-    const handlePageSizeChange = (size: number) => {
+    const handlePageSizeChange = useCallback((size: number) => {
         setPageSize(size);
         setPage(1); // Reset page on size change
-    };
+    }, []);
 
     const handleDelete = async (id: string) => {
         if (!confirm("Emin misiniz?")) return;

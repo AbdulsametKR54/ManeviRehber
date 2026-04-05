@@ -75,6 +75,14 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetProfile()
+    {
+        var result = await _mediator.Send(new Application.Users.Queries.GetProfile.GetProfileQuery());
+        return Ok(result);
+    }
+
     [HttpPut("me")]
     [Authorize] // All logged in users
     public async Task<IActionResult> UpdateProfile([FromBody] Application.Users.Commands.UpdateProfile.UpdateProfileCommand command)

@@ -76,4 +76,55 @@ public class QuranController : ControllerBase
         var result = await _quranService.CheckSurahIntegrityAsync(surahId);
         return Ok(result);
     }
+
+    // --- Open API Proxy Endpoints ---
+
+    [HttpGet("~/api/quran/open/surahs/{surahId}")]
+    public async Task<IActionResult> GetOpenSurahDetails(int surahId)
+    {
+        var data = await _quranService.GetSurahDetailsAsync(surahId);
+        return data != null ? Ok(data) : NotFound();
+    }
+
+    [HttpGet("~/api/quran/open/surahs/{surahId}/ayahs/{ayahId}")]
+    public async Task<IActionResult> GetOpenVerseDetail(int surahId, int ayahId)
+    {
+        var data = await _quranService.GetVerseDetailAsync(surahId, ayahId);
+        return data != null ? Ok(data) : NotFound();
+    }
+
+    [HttpGet("~/api/quran/open/surahs/{surahId}/ayahs/{ayahId}/translations")]
+    public async Task<IActionResult> GetOpenVerseTranslations(int surahId, int ayahId)
+    {
+        var data = await _quranService.GetVerseTranslationsAsync(surahId, ayahId);
+        return data != null ? Ok(data) : NotFound();
+    }
+
+    [HttpGet("~/api/quran/open/surahs/{surahId}/ayahs/{ayahId}/verseparts")]
+    public async Task<IActionResult> GetOpenVerseParts(int surahId, int ayahId)
+    {
+        var data = await _quranService.GetVersePartsAsync(surahId, ayahId);
+        return data != null ? Ok(data) : NotFound();
+    }
+
+    [HttpGet("~/api/quran/open/root/{latin}")]
+    public async Task<IActionResult> GetOpenRootDetails(string latin)
+    {
+        var data = await _quranService.GetRootDetailsAsync(latin);
+        return data != null ? Ok(data) : NotFound();
+    }
+
+    [HttpGet("~/api/quran/open/root/{latin}/verseparts")]
+    public async Task<IActionResult> GetOpenRootVerseParts(string latin)
+    {
+        var data = await _quranService.GetRootVersePartsAsync(latin);
+        return data != null ? Ok(data) : NotFound();
+    }
+
+    [HttpGet("~/api/quran/open/page/{pageNumber}")]
+    public async Task<IActionResult> GetOpenPageVerses(int pageNumber)
+    {
+        var data = await _quranService.GetPageVersesAsync(pageNumber);
+        return data != null ? Ok(data) : NotFound();
+    }
 }

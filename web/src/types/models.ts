@@ -1,5 +1,12 @@
 import { ContentType, Language } from "./enums";
 
+export interface PagedResponse<T> {
+    items: T[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+}
+
 export interface Category {
     id: string;
     name: string;

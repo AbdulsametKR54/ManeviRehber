@@ -52,6 +52,8 @@ public class GetLogsQueryHandler : IRequestHandler<GetLogsQuery, List<LogDto>>
                 Description = l.Description,
                 Data = l.Data,
                 IpAddress = l.IpAddress,
+                Platform = l.Platform,
+                Endpoint = l.Endpoint,
                 CreatedAt = l.CreatedAt
             })
             .ToListAsync(cancellationToken);

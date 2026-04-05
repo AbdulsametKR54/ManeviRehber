@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiSpecialDay } from "@/lib/api";
 import { SpecialDayTable } from "./components/SpecialDayTable";
@@ -20,7 +20,7 @@ export default function SpecialDayPage() {
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
 
-    const fetchSpecialDays = async () => {
+    const fetchSpecialDays = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -28,10 +28,10 @@ export default function SpecialDayPage() {
             if (res.data?.items) {
                 setSpecialDays(res.data.items);
                 setTotalCount(res.data.totalCount);
-                if (res.data.page) setPage(res.data.page);
-                if (res.data.pageSize) setPageSize(res.data.pageSize);
+                if (res.data.page && res.data.page !== page) setPage(res.data.page);
+                if (res.data.pageSize && res.data.pageSize !== pageSize) setPageSize(res.data.pageSize);
             } else {
-                setSpecialDays(res.data || []);
+                setSpecialDays(Array.isArray(res.data) ? res.data : []);
             }
         } catch (error) {
             console.error("Failed to fetch special days", error);
@@ -39,21 +39,21 @@ export default function SpecialDayPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [search, page, pageSize]);
 
     useEffect(() => {
         fetchSpecialDays();
-    }, [search, page, pageSize]);
+    }, [fetchSpecialDays]);
 
-    const handleSearchChange = (val: string) => {
+    const handleSearchChange = useCallback((val: string) => {
         setSearch(val);
         setPage(1); // Reset page on search
-    };
+    }, []);
 
-    const handlePageSizeChange = (size: number) => {
+    const handlePageSizeChange = useCallback((size: number) => {
         setPageSize(size);
         setPage(1); // Reset page on size change
-    };
+    }, []);
 
     return (
         <div className="space-y-6">

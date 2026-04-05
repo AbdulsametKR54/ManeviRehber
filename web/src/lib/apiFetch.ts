@@ -10,6 +10,7 @@ export async function apiFetch<T = unknown>(
 
     const headers: Record<string, string> = {
         "Content-Type": "application/json",
+        "X-Platform": "Web",
         ...(options.headers as Record<string, string>),
     };
 

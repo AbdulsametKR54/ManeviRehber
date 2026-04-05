@@ -1,3 +1,4 @@
+import { PagedResponse, Category, DailyContent, SpecialDay } from '@/types/models';
 import { apiFetch } from './apiFetch';
 
 // Helper to wrap apiFetch result back into axios-like { data: ... } structure for backward compatibility
@@ -25,9 +26,9 @@ export const apiUsers = {
 
 // Category API
 export const apiCategory = {
-    getAll: () => fetchWrap('/category'),
+    getAll: () => fetchWrap<Category[]>('/category'),
     getPaged: (search: string = "", page: number = 1, pageSize: number = 10) => 
-        fetchWrap(`/category/paged?search=${encodeURIComponent(search)}&page=${page}&pageSize=${pageSize}`),
+        fetchWrap<PagedResponse<Category>>(`/category/paged?search=${encodeURIComponent(search)}&page=${page}&pageSize=${pageSize}`),
     getById: (id: string) => fetchWrap(`/category/${id}`),
     create: (data: unknown) => fetchWrap('/category', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: unknown) => fetchWrap(`/category/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -60,7 +61,7 @@ export const apiDailyContent = {
         if (params.specialDayId) queryParams.append('specialDayId', params.specialDayId);
         queryParams.append('page', params.page.toString());
         queryParams.append('pageSize', params.pageSize.toString());
-        return fetchWrap(`/dailycontents/paged?${queryParams.toString()}`);
+        return fetchWrap<PagedResponse<DailyContent>>(`/dailycontents/paged?${queryParams.toString()}`);
     },
     getById: (id: string) => fetchWrap(`/dailycontents/${id}`),
     create: (data: unknown) => fetchWrap('/dailycontents', { method: 'POST', body: JSON.stringify(data) }),
@@ -70,9 +71,9 @@ export const apiDailyContent = {
 
 // SpecialDay API
 export const apiSpecialDay = {
-    getAll: () => fetchWrap('/specialdays'),
+    getAll: () => fetchWrap<SpecialDay[]>('/specialdays'),
     getPagedSpecialDays: (search: string = "", page: number = 1, pageSize: number = 10) => 
-        fetchWrap(`/specialdays/paged?search=${encodeURIComponent(search)}&page=${page}&pageSize=${pageSize}`),
+        fetchWrap<PagedResponse<SpecialDay>>(`/specialdays/paged?search=${encodeURIComponent(search)}&page=${page}&pageSize=${pageSize}`),
     getById: (id: string) => fetchWrap(`/specialdays/${id}`),
     create: (data: unknown) => fetchWrap('/specialdays', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: string, data: unknown) => fetchWrap(`/specialdays/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -147,4 +148,13 @@ export const apiQuran = {
     getFullSurahAudio: (reciter: string, surahId: number) => fetchWrap<string[]>(`/quran/audio/${reciter}/${surahId}/all`),
     getMealAudio: (language: string, surahId: number) => fetchWrap<{ url: string }>(`/quran/meal/${language}/${surahId}`),
     checkIntegrity: (surahId: number) => fetchWrap<any>(`/quran/surahs/${surahId}/integrity`),
+
+    // Open API Proxy Endpoints
+    getOpenSurahDetails: (surahId: number) => fetchWrap<any>(`/quran/open/surahs/${surahId}`),
+    getOpenVerseDetail: (surahId: number, ayahId: number) => fetchWrap<any>(`/quran/open/surahs/${surahId}/ayahs/${ayahId}`),
+    getOpenVerseTranslations: (surahId: number, ayahId: number) => fetchWrap<any>(`/quran/open/surahs/${surahId}/ayahs/${ayahId}/translations`),
+    getOpenVerseParts: (surahId: number, ayahId: number) => fetchWrap<any>(`/quran/open/surahs/${surahId}/ayahs/${ayahId}/verseparts`),
+    getOpenRootDetails: (latin: string) => fetchWrap<any>(`/quran/open/root/${latin}`),
+    getOpenRootVerseParts: (latin: string) => fetchWrap<any>(`/quran/open/root/${latin}/verseparts`),
+    getOpenPageVerses: (pageNumber: number) => fetchWrap<any>(`/quran/open/page/${pageNumber}`),
 };

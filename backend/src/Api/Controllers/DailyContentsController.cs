@@ -12,7 +12,7 @@ using Application.DailyContents.Queries.GetPagedDailyContentsQuery;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = "Admin,Editor")]
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class DailyContentsController : ControllerBase
@@ -41,6 +41,7 @@ public class DailyContentsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Create(CreateDailyContentCommand command)
     {
         var id = await _mediator.Send(command);
@@ -51,6 +52,7 @@ public class DailyContentsController : ControllerBase
     /// Günlük içerik kaydını günceller.
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Update(Guid id, UpdateDailyContentCommand command)
     {
         if (id != command.Id)
@@ -64,6 +66,7 @@ public class DailyContentsController : ControllerBase
     /// Günlük içerik kaydını siler.
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _mediator.Send(new DeleteDailyContentCommand { Id = id });

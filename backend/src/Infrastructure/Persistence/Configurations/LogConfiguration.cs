@@ -19,6 +19,12 @@ public class LogConfiguration : IEntityTypeConfiguration<Log>
 
         builder.Property(x => x.IpAddress)
             .HasMaxLength(50);
+
+        builder.Property(x => x.Platform)
+            .HasMaxLength(50);
+
+        builder.Property(x => x.Endpoint)
+            .HasMaxLength(255);
             
         // Data kolonu NVarChar(Max) olarak otomatik ayarlanır, ancak biz istersen explicitly belirtebiliriz
     }

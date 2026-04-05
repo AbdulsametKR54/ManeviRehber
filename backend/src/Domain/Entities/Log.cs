@@ -6,7 +6,7 @@ namespace Domain.Entities;
 public class Log : BaseEntity, IAggregateRoot
 {
     // The ID of the User (Admin) who performed the action
-    public Guid UserId { get; private set; }
+    public Guid? UserId { get; private set; }
 
     // Action Name (e.g., "DailyContent.Update")
     public string Action { get; private set; }
@@ -20,9 +20,15 @@ public class Log : BaseEntity, IAggregateRoot
     // IP address of the user making the request
     public string IpAddress { get; private set; }
 
+    // Platform (e.g., "Web", "Mobile")
+    public string Platform { get; private set; }
+
+    // Endpoint (e.g., "/api/dailycontents/paged")
+    public string Endpoint { get; private set; }
+
     private Log() { } // EF Core için gerekli
 
-    public Log(Guid userId, string action, string description, string data, string ipAddress)
+    public Log(Guid? userId, string action, string description, string data, string ipAddress, string platform = "System", string endpoint = "")
     {
         if (string.IsNullOrWhiteSpace(action))
             throw new ArgumentException("Action cannot be empty");
@@ -32,5 +38,7 @@ public class Log : BaseEntity, IAggregateRoot
         Description = description ?? string.Empty;
         Data = data ?? string.Empty;
         IpAddress = ipAddress ?? string.Empty;
+        Platform = platform ?? "System";
+        Endpoint = endpoint ?? string.Empty;
     }
 }

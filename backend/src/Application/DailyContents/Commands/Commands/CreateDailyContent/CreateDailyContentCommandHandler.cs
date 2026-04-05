@@ -36,6 +36,8 @@ public class CreateDailyContentCommandHandler : IRequestHandler<CreateDailyConte
         if (request.CategoryIds == null)
             request.CategoryIds = new List<Guid>();
 
+        request.CategoryIds = request.CategoryIds.Distinct().ToList();
+
         if (request.SpecialDayId.HasValue)
         {
             var specialDay = await _specialDayRepository.GetByIdAsync(request.SpecialDayId.Value);

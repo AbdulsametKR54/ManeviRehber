@@ -63,6 +63,7 @@ public class AuthController : ControllerBase
         var userId = Guid.Parse(subClaim.Value);
 
         var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return NotFound("Kullanıcı bulunamadı.");
 
         return Ok(new {
             user.Id,

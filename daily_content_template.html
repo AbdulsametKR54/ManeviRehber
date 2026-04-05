@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Content Design</title>
+    <!-- Use premium fonts: 'Playfair Display' for elegant spiritual feel, 'Inter' for clean modern dates -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            /* Fallback dark background so the canvas pops out */
+            background-color: #121212;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Wrapper that scales the design to fit beautifully on any preview screen */
+        .canvas-wrapper {
+            transform-origin: center center;
+            /* Adjusts scale based on the viewport height, ensuring the whole 1920px height fits */
+            transform: scale(calc(min(90vh / 1920, 95vw / 1080)));
+            transition: transform 0.3s ease;
+        }
+
+        /* 
+         * ==========================================
+         * THE ACTUAL CANVAS (1080x1920) 
+         * ==========================================
+         */
+        .story-canvas {
+            width: 1080px;
+            height: 1920px;
+            position: relative;
+            background-color: #000;
+            /* Default background image, easily replaceable */
+            background-image: url('https://images.unsplash.com/photo-1505322022379-7a3353ce6c12?q=80&w=1080&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            /* Soft shadow for aesthetics when previewed */
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 35% Full-Height Right Panel */
+        .right-panel {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 35%; /* 378px width */
+            height: 100%;
+            background: rgba(255, 255, 255, 0.96); 
+            backdrop-filter: blur(12px); /* Premium glassmorphism touch */
+            /* Soft shadow leaking to the left over the image */
+            box-shadow: -20px 0 80px rgba(0, 0, 0, 0.15);
+            
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 70px;
+        }
+
+        /* Minimalistic Date Typography */
+        .date {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 26px;
+            letter-spacing: 5px;
+            color: #64748b; /* Sleek muted tone */
+            text-transform: uppercase;
+            margin-bottom: 60px;
+            text-align: left;
+            position: relative;
+        }
+
+        /* Tiny elegant line underneath the date */
+        .date::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -20px;
+            width: 40px;
+            height: 2px;
+            background-color: #cbd5e1;
+        }
+
+        /* Container for the Quote + Decoration */
+        .content-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Large elegant translucent quote mark */
+        .content-container::before {
+            content: "“";
+            font-family: 'Playfair Display', serif;
+            font-size: 220px;
+            color: #e2e8f0;
+            position: absolute;
+            top: -80px;
+            left: -40px;
+            opacity: 0.7;
+            z-index: -1;
+            line-height: 1;
+        }
+
+        /* Daily Content Typography */
+        .content {
+            font-family: 'Playfair Display', serif;
+            font-size: 52px;
+            line-height: 1.45;
+            color: #1e293b; /* Deep premium slate */
+            font-weight: 400;
+            text-align: left;
+        }
+
+        /* ===== BACKGROUND SELECTOR UI ===== */
+        .bg-selector {
+            position: absolute;
+            left: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(16px);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .selector-title {
+            font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            opacity: 0.9;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .thumbnails {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .thumbnail {
+            width: 70px;
+            height: 124px; /* 9:16 aspect ratio */
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .thumbnail.active {
+            border-color: #fff;
+            transform: scale(1.08);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+        }
+        
+    </style>
+</head>
+<body>
+
+    <!-- Background Selector UI -->
+    <div class="bg-selector">
+        <div class="selector-title">Arka Plan</div>
+        <div class="thumbnails">
+            <!-- URL 1 (Mevcut) -->
+            <div class="thumbnail active" style="background-image: url('https://images.unsplash.com/photo-1505322022379-7a3353ce6c12?q=80&w=1080&auto=format&fit=crop')" onclick="changeBg('https://images.unsplash.com/photo-1505322022379-7a3353ce6c12?q=80&w=1080&auto=format&fit=crop', this)"></div>
+            <!-- URL 2 -->
+            <div class="thumbnail" style="background-image: url('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=1080&auto=format&fit=crop')" onclick="changeBg('https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=1080&auto=format&fit=crop', this)"></div>
+            <!-- URL 3 -->
+            <div class="thumbnail" style="background-image: url('https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1080&auto=format&fit=crop')" onclick="changeBg('https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?q=80&w=1080&auto=format&fit=crop', this)"></div>
+            <!-- URL 4 -->
+            <div class="thumbnail" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1080&auto=format&fit=crop')" onclick="changeBg('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1080&auto=format&fit=crop', this)"></div>
+        </div>
+    </div>
+
+    <!-- Scaled Wrapper for Previewing -->
+    <div class="canvas-wrapper">
+        <!-- Exact 1080x1920 Instagram Story Canvas -->
+        <div class="story-canvas" id="export-node">
+            
+            <!-- White Vertical Panel (35% Width) -->
+            <div class="right-panel">
+                
+                <div class="date">{DATE_TEXT}</div>
+                
+                <div class="content-container">
+                    <div class="content">
+                        {DAILY_CONTENT_TEXT}
+                    </div>
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        function changeBg(url, element) {
+            // Arka planı değiştir
+            document.querySelector('.story-canvas').style.backgroundImage = `url('${url}')`;
+            
+            // Aktif sınıfını güncelle
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiDailyContent, apiCategory, apiSpecialDay } from "@/lib/api";
 import { DailyContentTable } from "./components/DailyContentTable";
@@ -32,11 +32,11 @@ export default function DailyContentPage() {
 
     useEffect(() => {
         // Fetch categories and special days for filters
-        apiCategory.getAll().then(res => setCategories(res.data)).catch(console.error);
-        apiSpecialDay.getAll().then(res => setSpecialDays(res.data?.items || res.data || [])).catch(console.error);
+        apiCategory.getAll().then(res => setCategories(res.data || [])).catch(console.error);
+        apiSpecialDay.getAll().then(res => setSpecialDays(res.data || [])).catch(console.error);
     }, []);
 
-    const fetchContents = async () => {
+    const fetchContents = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -52,10 +52,13 @@ export default function DailyContentPage() {
             if (res.data?.items) {
                 setContents(res.data.items);
                 setTotalCount(res.data.totalCount);
-                if (res.data.page) setPage(res.data.page);
-                if (res.data.pageSize) setPageSize(res.data.pageSize);
+                // Only update page/pageSize state if they are different from current state
+                // to avoid unnecessary re-triggers
+                if (res.data.page && res.data.page !== page) setPage(res.data.page);
+                if (res.data.pageSize && res.data.pageSize !== pageSize) setPageSize(res.data.pageSize);
             } else {
-                setContents(res.data || []);
+                // Handle cases where the response might be a simple array (backward compatibility)
+                setContents(Array.isArray(res.data) ? res.data : []);
             }
         } catch (error) {
             console.error("Failed to fetch daily contents", error);
@@ -63,20 +66,20 @@ export default function DailyContentPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [search, date, type, categoryId, specialDayId, page, pageSize]);
 
     useEffect(() => {
         fetchContents();
-    }, [search, date, type, categoryId, specialDayId, page, pageSize]);
+    }, [fetchContents]);
 
-    const handleFilterChange = () => {
+    const handleFilterChange = useCallback(() => {
         setPage(1);
-    };
+    }, []);
 
-    const handleSearchChange = (val: string) => {
+    const handleSearchChange = useCallback((val: string) => {
         setSearch(val);
         handleFilterChange();
-    };
+    }, [handleFilterChange]);
 
     return (
         <div className="space-y-6">

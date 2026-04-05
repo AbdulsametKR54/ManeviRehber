@@ -78,10 +78,22 @@ public class UpdateDailyContentCommandHandler : IRequestHandler<UpdateDailyConte
         entity.Update(request.Title, request.Content, request.Type, request.Date, request.SpecialDayId);
 
         // Update categories
-        entity.DailyContentCategories.Clear();
-        if (request.CategoryIds != null)
+        var existingCategories = entity.DailyContentCategories.ToList();
+        var selectedCategoryIds = (request.CategoryIds ?? new List<Guid>()).Distinct().ToList();
+
+        // Remove categories not in the request
+        foreach (var existingMapping in existingCategories)
         {
-            foreach (var categoryId in request.CategoryIds)
+            if (!selectedCategoryIds.Contains(existingMapping.CategoryId))
+            {
+                entity.DailyContentCategories.Remove(existingMapping);
+            }
+        }
+
+        // Add new categories
+        foreach (var categoryId in selectedCategoryIds)
+        {
+            if (!existingCategories.Any(x => x.CategoryId == categoryId))
             {
                 entity.DailyContentCategories.Add(new DailyContentCategory
                 {

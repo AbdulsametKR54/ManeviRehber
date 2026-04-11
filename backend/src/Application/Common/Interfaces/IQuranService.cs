@@ -5,4 +5,5 @@ namespace Application.Common.Interfaces;
 
 public interface IQuranService : IQuranInternalService, IQuranOpenApiService
 {
+    Task<AyahDto> GetRandomVerseAsync();
 }

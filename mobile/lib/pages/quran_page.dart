@@ -1,7 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'hatim_page.dart';
 import 'surah_list_page.dart';
+import 'juz_list_page.dart';
+import 'surah_detail_page.dart';
+import '../services/quran_service.dart';
+import '../services/user_progress_service.dart';
+
+import 'favorite_list_page.dart';
 
 class QuranPage extends StatefulWidget {
   const QuranPage({super.key});
@@ -11,6 +18,9 @@ class QuranPage extends StatefulWidget {
 }
 
 class _QuranPageState extends State<QuranPage> {
+  final UserProgressService _progressService = UserProgressService();
+  final QuranService _quranService = QuranService();
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -91,7 +101,10 @@ class _QuranPageState extends State<QuranPage> {
                       icon: Icons.grid_view_rounded,
                       color: Colors.amber.shade700,
                       onTap: () {
-                        _showSoonSnackBar(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const JuzListPage()),
+                        );
                       },
                     ),
                     _buildMenuCard(
@@ -100,9 +113,7 @@ class _QuranPageState extends State<QuranPage> {
                       subtitle: "Kaldığın yerden devam et",
                       icon: Icons.history_rounded,
                       color: Colors.blue,
-                      onTap: () {
-                        _showSoonSnackBar(context);
-                      },
+                      onTap: _navigateToLastRead,
                     ),
                     _buildMenuCard(
                       context,
@@ -111,7 +122,10 @@ class _QuranPageState extends State<QuranPage> {
                       icon: Icons.bookmark_rounded,
                       color: Colors.pink,
                       onTap: () {
-                        _showSoonSnackBar(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const FavoriteListPage()),
+                        );
                       },
                     ),
                     _buildMenuCard(
@@ -121,7 +135,10 @@ class _QuranPageState extends State<QuranPage> {
                       icon: Icons.auto_stories_rounded,
                       color: Colors.purple,
                       onTap: () {
-                        _showSoonSnackBar(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const HatimPage()),
+                        );
                       },
                     ),
                     _buildMenuCard(
@@ -130,9 +147,7 @@ class _QuranPageState extends State<QuranPage> {
                       subtitle: "Kıraat ve dinleme",
                       icon: Icons.headset_rounded,
                       color: Colors.teal,
-                      onTap: () {
-                        _showSoonSnackBar(context);
-                      },
+                      onTap: _navigateToRandomVerse,
                     ),
                   ],
                 ),
@@ -142,6 +157,50 @@ class _QuranPageState extends State<QuranPage> {
         ),
       ),
     );
+  }
+
+  void _navigateToLastRead() async {
+    final lastPosition = await _progressService.getLocalLastPosition();
+    if (lastPosition != null && mounted) {
+      final surahs = await _quranService.getSurahs();
+      final surah = surahs.firstWhere((s) => s.id == lastPosition.surahId);
+      
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SurahDetailPage(
+            surah: surah,
+            initialAyahNumber: lastPosition.ayahNumber,
+          ),
+        ),
+      );
+    } else {
+      _showSoonSnackBar(context, message: "Henüz bir okuma kaydınız bulunmuyor.");
+    }
+  }
+
+  void _navigateToRandomVerse() async {
+    try {
+      final verse = await _quranService.getRandomAyah();
+      if (verse != null && mounted) {
+        final surahs = await _quranService.getSurahs();
+        final surah = surahs.firstWhere((s) => s.id == verse.surahId);
+        
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SurahDetailPage(
+              surah: surah,
+              initialAyahNumber: verse.ayahNumber,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+       _showSoonSnackBar(context, message: "Rastgele ayet yüklenemedi.");
+    }
   }
 
   Widget _buildMenuCard(
@@ -211,11 +270,11 @@ class _QuranPageState extends State<QuranPage> {
     );
   }
 
-  void _showSoonSnackBar(BuildContext context) {
+  void _showSoonSnackBar(BuildContext context, {String? message}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Bu özellik yakında eklenecek"),
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: Text(message ?? "Bu özellik yakında eklenecek"),
+        duration: const Duration(seconds: 2),
       ),
     );
   }

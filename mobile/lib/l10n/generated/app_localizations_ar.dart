@@ -508,4 +508,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsAthanDesc => 'تشغيل صوت الأذان عند دخول وقت الصلاة.';
+
+  @override
+  String get qiblaDirection => 'Kıble Yönü';
+
+  @override
+  String qiblaDistance(String distance) {
+    return 'Kabe\'ye Uzaklık: $distance km';
+  }
+
+  @override
+  String get qiblaPermissionRequired =>
+      'Kıbleyi bulmak için konum izni gereklidir.';
+
+  @override
+  String get qiblaLocationError => 'Konum alınamadı.';
+
+  @override
+  String get qiblaGrantPermission => 'İzin Ver';
+
+  @override
+  String get qiblaSettings => 'Ayarlar';
+
+  @override
+  String get favorites => 'Favoriler';
 }

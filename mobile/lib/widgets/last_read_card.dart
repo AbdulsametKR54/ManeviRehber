@@ -6,12 +6,18 @@ class LastReadCard extends StatelessWidget {
   final DailyVerseModel? model;
   final bool isLoading;
   final VoidCallback? onTap;
+  final String? title;
+  final String? subtitle;
+  final IconData? icon;
 
   const LastReadCard({
     super.key,
     this.model,
     this.isLoading = false,
     this.onTap,
+    this.title,
+    this.subtitle,
+    this.icon,
   });
 
   @override
@@ -22,7 +28,7 @@ class LastReadCard extends StatelessWidget {
         height: 80,
         margin: const EdgeInsets.symmetric(horizontal: 24),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceVariant,
+          color: colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Center(
@@ -41,7 +47,7 @@ class LastReadCard extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceVariant,
+          color: colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -72,7 +78,7 @@ class LastReadCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          l10n.lastRead,
+                          title ?? l10n.lastRead,
                           style: TextStyle(
                             fontFamily: 'Manrope',
                             fontSize: 12,
@@ -83,7 +89,7 @@ class LastReadCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          surahName == l10n.unknown ? l10n.unknown : '$surahName ${l10n.surah} – ${l10n.ayah} $ayahNumber',
+                          subtitle ?? (surahName == l10n.unknown ? l10n.unknown : '$surahName ${l10n.surah} – ${l10n.ayah} $ayahNumber'),
                           style: TextStyle(
                             fontFamily: 'Manrope',
                             fontSize: 16,
@@ -115,9 +121,9 @@ class LastReadCard extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
-                  Icons.play_arrow,
+                  icon ?? Icons.play_arrow,
                   color: Colors.white,
                   size: 20,
                 ),

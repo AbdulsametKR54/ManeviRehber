@@ -510,4 +510,28 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get settingsAthanDesc =>
       'Namaz vakti geldiğinde ezan sesi ile bildir.';
+
+  @override
+  String get qiblaDirection => 'Kıble Yönü';
+
+  @override
+  String qiblaDistance(String distance) {
+    return 'Kabe\'ye Uzaklık: $distance km';
+  }
+
+  @override
+  String get qiblaPermissionRequired =>
+      'Kıbleyi bulmak için konum izni gereklidir.';
+
+  @override
+  String get qiblaLocationError => 'Konum alınamadı.';
+
+  @override
+  String get qiblaGrantPermission => 'İzin Ver';
+
+  @override
+  String get qiblaSettings => 'Ayarlar';
+
+  @override
+  String get favorites => 'Favoriler';
 }

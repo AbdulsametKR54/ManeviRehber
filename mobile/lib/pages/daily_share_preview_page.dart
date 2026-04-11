@@ -426,6 +426,9 @@ class _DailySharePreviewPageState extends State<DailySharePreviewPage> {
     if (content.length > 250) finalFontSize *= 0.85;
     if (content.length > 500) finalFontSize *= 0.75;
 
+    final isArabic = RegExp(r'[\u0600-\u06FF]').hasMatch(content);
+    final isLongContent = content.length > 300 || (localizedSubtitle.length) > 200;
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -446,38 +449,47 @@ class _DailySharePreviewPageState extends State<DailySharePreviewPage> {
               ),
             ),
           ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: isCentered ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              content,
-              textAlign: isCentered ? TextAlign.center : TextAlign.start,
-              style: TextStyle(
-                fontFamily: 'Noto Serif',
-                fontSize: finalFontSize,
-                height: 1.6,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF0f172a),
-                fontStyle: FontStyle.italic,
-              ),
-              softWrap: true,
-            ),
-            if (localizedSubtitle.isNotEmpty) ...[
-              const SizedBox(height: 50),
-              Text(
-                localizedSubtitle,
-                style: TextStyle(
-                  fontFamily: 'Manrope',
-                  fontWeight: FontWeight.w800,
-                  fontSize: subSize,
-                  letterSpacing: 1.5,
-                  color: const Color(0xFF475569),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: isCentered ? Alignment.center : (isArabic ? Alignment.centerRight : Alignment.centerLeft),
+          child: SizedBox(
+            width: isCentered ? 1080 * 0.75 : 1080 * 0.3,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: isCentered ? CrossAxisAlignment.center : (isArabic ? CrossAxisAlignment.end : CrossAxisAlignment.start),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  content,
+                  textAlign: isCentered ? TextAlign.center : (isArabic ? TextAlign.right : TextAlign.start),
+                  style: TextStyle(
+                    fontFamily: isArabic ? 'Amiri' : 'Noto Serif',
+                    fontSize: isArabic ? finalFontSize * 1.5 : finalFontSize,
+                    height: 1.6,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF0f172a),
+                    fontStyle: isArabic ? FontStyle.normal : FontStyle.italic,
+                  ),
+                  softWrap: true,
+                  textDirection: isArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
                 ),
-              ),
-            ],
-          ],
+                if (localizedSubtitle.isNotEmpty) ...[
+                  SizedBox(height: isLongContent ? 24 : 50),
+                  Text(
+                    localizedSubtitle,
+                    style: TextStyle(
+                      fontFamily: 'Manrope',
+                      fontWeight: FontWeight.w800,
+                      fontSize: subSize,
+                      letterSpacing: 1.5,
+                      color: const Color(0xFF475569),
+                    ),
+                    textAlign: isCentered ? TextAlign.center : (isArabic ? TextAlign.right : TextAlign.start),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ],
     );

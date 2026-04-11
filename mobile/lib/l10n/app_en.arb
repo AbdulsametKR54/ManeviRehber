@@ -184,5 +184,19 @@
   "specialDays": "Special Days",
   "settingsReminder15Min": "Remind 15 Min Before (Vibrate)",
   "settingsAthanSound": "Play Athan Sound",
-  "settingsAthanDesc": "Play the Athan sound when it is prayer time."
+  "settingsAthanDesc": "Play the Athan sound when it is prayer time.",
+  "qiblaDirection": "Qibla Direction",
+  "qiblaDistance": "Distance to Kaaba: {distance} km",
+  "@qiblaDistance": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "qiblaPermissionRequired": "Location permission is required to find Qibla.",
+  "qiblaLocationError": "Location could not be retrieved.",
+  "qiblaGrantPermission": "Grant Permission",
+  "qiblaSettings": "Settings",
+  "favorites": "Favorites"
 }

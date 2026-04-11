@@ -1,10 +1,12 @@
 class DailyContentModel {
+  final String id;
   final String title;
   final String content;
   final String typeName;
   final List<String> categories;
 
   DailyContentModel({
+    required this.id,
     required this.title,
     required this.content,
     required this.typeName,
@@ -25,6 +27,7 @@ class DailyContentModel {
     }
 
     return DailyContentModel(
+      id: (json['id'] ?? json['Id'] ?? '').toString(),
       title: (json['title'] ?? json['Title'] ?? 'Bilinmiyor').toString(),
       content: (json['content'] ?? json['Content'] ?? '').toString(),
       typeName: (json['typeName'] ?? json['TypeName'] ?? '').toString(),

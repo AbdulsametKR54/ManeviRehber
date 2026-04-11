@@ -8,6 +8,7 @@ import 'pages/zikirmatik_page.dart';
 import 'pages/prayer_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/main_page.dart';
+import 'pages/qibla_page.dart';
 import 'register_page.dart';
 import 'config/app_theme.dart';
 import 'utils/theme_manager.dart';
@@ -86,6 +87,7 @@ class ManeviRehberApp extends StatelessWidget {
             '/zikirmatik': (context) => const ZikirmatikPage(),
             '/prayer': (context) => const PrayerPage(),
             '/settings': (context) => const SettingsPage(),
+            '/qibla': (context) => const QiblaPage(),
           },
         );
       },

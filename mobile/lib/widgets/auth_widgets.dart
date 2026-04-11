@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../utils/theme_manager.dart';
+import '../utils/language_manager.dart';
 
 class FormLabel extends StatelessWidget {
   final String label;
@@ -79,9 +80,15 @@ class PrimaryButton extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         gradient: LinearGradient(
-          colors: onTap == null 
-              ? [colorScheme.outline.withValues(alpha: 0.3), colorScheme.outline.withValues(alpha: 0.3)] 
-              : [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.8)],
+          colors: onTap == null
+              ? [
+                  colorScheme.outline.withValues(alpha: 0.3),
+                  colorScheme.outline.withValues(alpha: 0.3),
+                ]
+              : [
+                  colorScheme.primary,
+                  colorScheme.primary.withValues(alpha: 0.8),
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -144,7 +151,10 @@ class FooterDot extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Text('•', style: TextStyle(color: colorScheme.outline.withValues(alpha: 0.5))),
+      child: Text(
+        '•',
+        style: TextStyle(color: colorScheme.outline.withValues(alpha: 0.5)),
+      ),
     );
   }
 }
@@ -186,6 +196,7 @@ class LoginDivider extends StatelessWidget {
     );
   }
 }
+
 class ThemeToggleButton extends StatelessWidget {
   const ThemeToggleButton({super.key});
 
@@ -207,5 +218,78 @@ class ThemeToggleButton extends StatelessWidget {
         color: Theme.of(context).colorScheme.primary,
       ),
     );
+  }
+}
+
+class LanguageToggleButton extends StatelessWidget {
+  const LanguageToggleButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final languageManager = LanguageManager();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return PopupMenuButton<String>(
+      onSelected: (String code) {
+        languageManager.setLanguage(code);
+      },
+      icon: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceVariant.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _getFlag(languageManager.locale.languageCode),
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              languageManager.locale.languageCode.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+      offset: const Offset(0, 48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        _buildPopupItem('tr', '🇹🇷', 'Türkçe'),
+        _buildPopupItem('en', '🇬🇧', 'English'),
+        _buildPopupItem('ar', '🇸🇦', 'العربية'),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _buildPopupItem(String code, String flag, String name) {
+    return PopupMenuItem<String>(
+      value: code,
+      child: Row(
+        children: [
+          Text(flag, style: const TextStyle(fontSize: 20)),
+          const SizedBox(width: 12),
+          Text(name, style: const TextStyle(fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+
+  String _getFlag(String code) {
+    switch (code) {
+      case 'en':
+        return '🇬🇧';
+      case 'ar':
+        return '🇸🇦';
+      default:
+        return '🇹🇷';
+    }
   }
 }

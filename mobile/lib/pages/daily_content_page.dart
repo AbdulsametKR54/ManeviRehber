@@ -7,6 +7,8 @@ import '../models/daily_verse_model.dart';
 import '../utils/image_utils.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../pages/daily_share_preview_page.dart';
+import '../services/favorite_service.dart';
+import '../models/favorite_model.dart';
 
 class DailyContentPage extends StatefulWidget {
   const DailyContentPage({super.key});
@@ -18,9 +20,11 @@ class DailyContentPage extends StatefulWidget {
 class _DailyContentPageState extends State<DailyContentPage> {
   final DailyContentService _dailyContentService = DailyContentService();
   final QuranService _quranService = QuranService();
-
+  final FavoriteService _favoriteService = FavoriteService();
+  
   DailyVerseModel? _verse;
   DailyContentModel? _quote;
+  List<FavoriteModel> _userFavorites = [];
   bool _isLoading = true;
   late String _bgImage;
 
@@ -38,11 +42,13 @@ class _DailyContentPageState extends State<DailyContentPage> {
       final results = await Future.wait([
         _quranService.getRandomAyah(),
         _dailyContentService.getRandomDailyContent(),
+        _favoriteService.getFavorites(),
       ]);
       if (mounted) {
         setState(() {
           _verse = results[0] as DailyVerseModel?;
           _quote = results[1] as DailyContentModel?;
+          _userFavorites = results[2] as List<FavoriteModel>;
           _isLoading = false;
         });
       }
@@ -290,7 +296,13 @@ class _DailyContentPageState extends State<DailyContentPage> {
                                   },
                                 ),
                               const SizedBox(width: 8),
-                              _buildCardAction(context, Icons.bookmark_border, AppLocalizations.of(context)!.save),
+                              _buildCardAction(
+                                context, 
+                                _userFavorites.any((f) => f.externalId == "${_verse?.surahId}:${_verse?.ayahNumber}" && f.type == 1)
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_border,
+                                () => _toggleVerseFavorite(),
+                              ),
                             ],
                           ),
                         ],
@@ -403,8 +415,14 @@ class _DailyContentPageState extends State<DailyContentPage> {
                                     }
                                   },
                                 ),
-                                const SizedBox(width: 8),
-                                _buildCardAction(context, Icons.bookmark_border, AppLocalizations.of(context)!.save),
+                                 const SizedBox(width: 8),
+                                _buildCardAction(
+                                  context, 
+                                  _userFavorites.any((f) => f.externalId == "daily_${_quote?.id}" && f.type != 1)
+                                      ? Icons.bookmark
+                                      : Icons.bookmark_border,
+                                  () => _toggleQuoteFavorite(),
+                                ),
                               ],
                             ),
                           ],
@@ -432,14 +450,73 @@ class _DailyContentPageState extends State<DailyContentPage> {
     );
   }
 
-  Widget _buildCardAction(BuildContext context, IconData icon, String message) {
+  void _toggleVerseFavorite() async {
+    if (_verse == null) return;
+    final externalId = "${_verse!.surahId}:${_verse!.ayahNumber}";
+    final existingIndex = _userFavorites.indexWhere((f) => f.externalId == externalId && f.type == 1);
+
+    if (existingIndex != -1) {
+      final success = await _favoriteService.deleteFavorite(_userFavorites[existingIndex].id);
+      if (success && mounted) {
+        setState(() => _userFavorites.removeAt(existingIndex));
+      }
+    } else {
+      final favorite = FavoriteModel(
+        id: "",
+        type: 1,
+        externalId: externalId,
+        surahId: _verse!.surahId,
+        ayahNumber: _verse!.ayahNumber,
+        title: "${_verse!.surahName} ${_verse!.ayahNumber}",
+        contentArabic: _verse!.arabic,
+        contentText: _verse!.translation,
+        createdAt: DateTime.now(),
+      );
+      final success = await _favoriteService.addFavorite(favorite);
+      if (success && mounted) {
+        final updated = await _favoriteService.getFavorites();
+        if (mounted) setState(() => _userFavorites = updated);
+      }
+    }
+  }
+
+  void _toggleQuoteFavorite() async {
+    if (_quote == null) return;
+    final externalId = "daily_${_quote!.id}";
+    // Type mapping: Quote default 3
+    int type = 3;
+    final typeName = _quote!.typeName.toLowerCase();
+    if (typeName.contains("hadith")) type = 2;
+    else if (typeName.contains("prayer") || typeName.contains("dua")) type = 4;
+
+    final existingIndex = _userFavorites.indexWhere((f) => f.externalId == externalId && f.type == type);
+
+    if (existingIndex != -1) {
+      final success = await _favoriteService.deleteFavorite(_userFavorites[existingIndex].id);
+      if (success && mounted) {
+        setState(() => _userFavorites.removeAt(existingIndex));
+      }
+    } else {
+      final favorite = FavoriteModel(
+        id: "",
+        type: type,
+        externalId: externalId,
+        title: _quote!.title,
+        contentText: _quote!.content,
+        createdAt: DateTime.now(),
+      );
+      final success = await _favoriteService.addFavorite(favorite);
+      if (success && mounted) {
+        final updated = await _favoriteService.getFavorites();
+        if (mounted) setState(() => _userFavorites = updated);
+      }
+    }
+  }
+
+  Widget _buildCardAction(BuildContext context, IconData icon, VoidCallback onPressed) {
     final colorScheme = Theme.of(context).colorScheme;
     return IconButton(
-      onPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.saved)),
-        );
-      },
+      onPressed: onPressed,
       icon: Icon(icon, size: 20),
       color: colorScheme.primary,
       style: IconButton.styleFrom(

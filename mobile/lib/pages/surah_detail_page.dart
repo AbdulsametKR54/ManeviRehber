@@ -6,6 +6,8 @@ import '../models/daily_verse_model.dart';
 import '../services/quran_service.dart';
 import '../services/audio_service.dart';
 import '../services/user_progress_service.dart';
+import '../services/favorite_service.dart';
+import '../models/favorite_model.dart';
 import '../utils/image_utils.dart';
 import '../l10n/generated/app_localizations.dart';
 
@@ -27,6 +29,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> with SingleTickerProv
   final QuranService _quranService = QuranService();
   final AudioService _audioService = AudioService();
   final UserProgressService _userProgressService = UserProgressService();
+  final FavoriteService _favoriteService = FavoriteService();
   final PageController _pageController = PageController();
   late AnimationController _rotationController;
 
@@ -35,6 +38,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> with SingleTickerProv
   bool _isLoading = true;
   String _selectedLanguage = 'TR';
   Map<String, String>? _selectedReciter;
+  List<FavoriteModel> _userFavorites = [];
   int _currentAyahIndex = 0;
   StreamSubscription? _currentIndexSub;
   StreamSubscription? _playingSub;
@@ -109,6 +113,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> with SingleTickerProv
       final results = await Future.wait([
         _quranService.getReciters(),
         _quranService.getAyahs(widget.surah.id, widget.surah.turkishName),
+        _favoriteService.getFavorites(),
       ]);
 
       if (mounted) {
@@ -118,6 +123,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> with SingleTickerProv
             _selectedReciter = _reciters.first;
           }
           _ayahs = results[1] as List<DailyVerseModel>;
+          _userFavorites = results[2] as List<FavoriteModel>;
           _isLoading = false;
 
           // Jump to initial ayah if provided
@@ -138,6 +144,52 @@ class _SurahDetailPageState extends State<SurahDetailPage> with SingleTickerProv
     } catch (e) {
       print('SurahDetailPage _fetchData Error: $e');
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _toggleFavorite(DailyVerseModel ayah) async {
+    final externalId = "${widget.surah.id}:${ayah.ayahNumber}";
+    final existingIndex = _userFavorites.indexWhere((f) => f.externalId == externalId && f.type == 1);
+
+    if (existingIndex != -1) {
+      // Delete
+      final favoriteId = _userFavorites[existingIndex].id;
+      final success = await _favoriteService.deleteFavorite(favoriteId);
+      if (success && mounted) {
+        setState(() {
+          _userFavorites.removeAt(existingIndex);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Favorilerden kaldırıldı')),
+        );
+      }
+    } else {
+      // Add
+      final favorite = FavoriteModel(
+        id: "", // Backend will generate
+        type: 1, // Verse
+        externalId: externalId,
+        surahId: widget.surah.id,
+        ayahNumber: ayah.ayahNumber,
+        title: "${widget.surah.turkishName} ${ayah.ayahNumber}",
+        contentArabic: ayah.arabic,
+        contentText: ayah.translation,
+        createdAt: DateTime.now(),
+      );
+
+      final success = await _favoriteService.addFavorite(favorite);
+      if (success && mounted) {
+        // Refresh favorites
+        final updatedFavs = await _favoriteService.getFavorites();
+        if (mounted) {
+          setState(() {
+            _userFavorites = updatedFavs;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Favorilere eklendi')),
+          );
+        }
+      }
     }
   }
 
@@ -804,36 +856,65 @@ class _SurahDetailPageState extends State<SurahDetailPage> with SingleTickerProv
                       );
                     }),
                   ),
-                  GestureDetector(
-                    onTap: () => _playAyah(index),
-                    child: Row(
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.listenAyah,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => _toggleFavorite(ayah),
+                        child: Container(
                           width: 32,
                           height: 32,
+                          margin: const EdgeInsets.only(right: 12),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: colorScheme.primary.withAlpha(51),
+                              color: _userFavorites.any((f) => f.externalId == "${widget.surah.id}:${ayah.ayahNumber}" && f.type == 1)
+                                  ? Colors.red.withValues(alpha: 0.1)
+                                  : colorScheme.outline.withValues(alpha: 0.1),
                             ),
                           ),
                           child: Icon(
-                            Icons.play_circle,
-                            color: colorScheme.primary,
+                            _userFavorites.any((f) => f.externalId == "${widget.surah.id}:${ayah.ayahNumber}" && f.type == 1)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: _userFavorites.any((f) => f.externalId == "${widget.surah.id}:${ayah.ayahNumber}" && f.type == 1)
+                                ? Colors.red
+                                : colorScheme.outline,
                             size: 16,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      GestureDetector(
+                        onTap: () => _playAyah(index),
+                        child: Row(
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.listenAyah,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: colorScheme.primary.withAlpha(51),
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.play_circle,
+                                color: colorScheme.primary,
+                                size: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

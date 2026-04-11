@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'services/auth_service.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'widgets/auth_widgets.dart';
+import 'constants/app_constants.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -135,7 +136,15 @@ class _LoginPageState extends State<LoginPage> {
           Positioned(
             top: 16,
             right: 16,
-            child: SafeArea(child: const ThemeToggleButton()),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  const LanguageToggleButton(),
+                  const SizedBox(width: 8),
+                  const ThemeToggleButton(),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -171,7 +180,7 @@ class LoginHeader extends StatelessWidget {
             ],
           ),
           child: Image.asset(
-            'assets/logo/Manevi-Rehber-Icon.png',
+            AppConstants.appLogo,
             width: 56,
             height: 56,
             fit: BoxFit.contain,

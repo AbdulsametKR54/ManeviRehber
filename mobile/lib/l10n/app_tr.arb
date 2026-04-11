@@ -184,5 +184,19 @@
   "specialDays": "Özel Günler",
   "settingsReminder15Min": "15 Dakika Önce Hatırlat (Titreşim)",
   "settingsAthanSound": "Ezan Sesi Çalsın",
-  "settingsAthanDesc": "Namaz vakti geldiğinde ezan sesi ile bildir."
+  "settingsAthanDesc": "Namaz vakti geldiğinde ezan sesi ile bildir.",
+  "qiblaDirection": "Kıble Yönü",
+  "qiblaDistance": "Kabe'ye Uzaklık: {distance} km",
+  "@qiblaDistance": {
+    "placeholders": {
+      "distance": {
+        "type": "String"
+      }
+    }
+  },
+  "qiblaPermissionRequired": "Kıbleyi bulmak için konum izni gereklidir.",
+  "qiblaLocationError": "Konum alınamadı.",
+  "qiblaGrantPermission": "İzin Ver",
+  "qiblaSettings": "Ayarlar",
+  "favorites": "Favoriler"
 }

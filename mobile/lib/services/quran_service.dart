@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/surah_model.dart';
 import '../models/daily_verse_model.dart';
 import '../models/daily_verse_model.dart' as verse_model;
+import '../models/quran_page_model.dart';
 import '../config/app_config.dart';
 
 class QuranService {
@@ -149,6 +150,26 @@ class QuranService {
       print('QuranService getFullSurahAudioUrls Error: $e');
     }
     return [];
+  }
+
+  Future<List<AcikKuranVerse>> getPageVerses(int page) async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://api.acikkuran.com/page/$page'))
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode != 200) {
+        print('QuranService getPageVerses Error: ${response.statusCode}');
+        return [];
+      }
+
+      final dynamic data = jsonDecode(response.body);
+      final responseModel = AcikKuranPageResponse.fromJson(data);
+      return responseModel.data;
+    } catch (e) {
+      print('QuranService getPageVerses Exception: $e');
+      return [];
+    }
   }
 }
 

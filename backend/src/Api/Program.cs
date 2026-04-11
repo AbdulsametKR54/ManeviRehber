@@ -118,6 +118,7 @@ builder.Services.AddScoped<ISettingRepository, SettingRepository>();
 builder.Services.AddScoped<ILogRepository, LogRepository>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IQuranRepository, QuranRepository>();
+builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient<IQuranOpenApiService, QuranOpenApiService>(client =>
 {

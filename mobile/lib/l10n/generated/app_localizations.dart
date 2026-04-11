@@ -1089,6 +1089,48 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Namaz vakti geldiğinde ezan sesi ile bildir.'**
   String get settingsAthanDesc;
+
+  /// No description provided for @qiblaDirection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kıble Yönü'**
+  String get qiblaDirection;
+
+  /// No description provided for @qiblaDistance.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabe\'ye Uzaklık: {distance} km'**
+  String qiblaDistance(String distance);
+
+  /// No description provided for @qiblaPermissionRequired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kıbleyi bulmak için konum izni gereklidir.'**
+  String get qiblaPermissionRequired;
+
+  /// No description provided for @qiblaLocationError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum alınamadı.'**
+  String get qiblaLocationError;
+
+  /// No description provided for @qiblaGrantPermission.
+  ///
+  /// In tr, this message translates to:
+  /// **'İzin Ver'**
+  String get qiblaGrantPermission;
+
+  /// No description provided for @qiblaSettings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayarlar'**
+  String get qiblaSettings;
+
+  /// No description provided for @favorites.
+  ///
+  /// In tr, this message translates to:
+  /// **'Favoriler'**
+  String get favorites;
 }
 
 class _AppLocalizationsDelegate

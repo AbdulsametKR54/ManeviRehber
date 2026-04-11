@@ -510,4 +510,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsAthanDesc =>
       'Play the Athan sound when it is prayer time.';
+
+  @override
+  String get qiblaDirection => 'Qibla Direction';
+
+  @override
+  String qiblaDistance(String distance) {
+    return 'Distance to Kaaba: $distance km';
+  }
+
+  @override
+  String get qiblaPermissionRequired =>
+      'Location permission is required to find Qibla.';
+
+  @override
+  String get qiblaLocationError => 'Location could not be retrieved.';
+
+  @override
+  String get qiblaGrantPermission => 'Grant Permission';
+
+  @override
+  String get qiblaSettings => 'Settings';
+
+  @override
+  String get favorites => 'Favorites';
 }

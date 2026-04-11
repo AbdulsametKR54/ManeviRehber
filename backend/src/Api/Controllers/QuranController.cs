@@ -21,6 +21,13 @@ public class QuranController : ControllerBase
         return Ok(surahs);
     }
 
+    [HttpGet("random-verse")]
+    public async Task<IActionResult> GetRandomVerse()
+    {
+        var verse = await _quranService.GetRandomVerseAsync();
+        return Ok(verse);
+    }
+
     [HttpGet("reciters")]
     public async Task<IActionResult> GetReciters()
     {

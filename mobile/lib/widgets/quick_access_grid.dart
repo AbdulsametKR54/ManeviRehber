@@ -26,7 +26,9 @@ class QuickAccessGrid extends StatelessWidget {
               context: context,
               iconData: Icons.explore,
               label: AppLocalizations.of(context)!.qiblaFinder,
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, '/qibla');
+              },
             ),
           ),
         ],

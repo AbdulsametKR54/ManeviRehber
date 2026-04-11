@@ -34,4 +34,15 @@ public class QuranService : IQuranService
     public Task<object?> GetRootDetailsAsync(string latin) => _openApiService.GetRootDetailsAsync(latin);
     public Task<object?> GetRootVersePartsAsync(string latin) => _openApiService.GetRootVersePartsAsync(latin);
     public Task<object?> GetPageVersesAsync(int pageNumber) => _openApiService.GetPageVersesAsync(pageNumber);
+
+    public async Task<AyahDto> GetRandomVerseAsync()
+    {
+        var surahs = await GetSurahsAsync();
+        var random = new Random();
+        var randomSurah = surahs[random.Next(surahs.Count)];
+        var randomAyahNumber = random.Next(1, randomSurah.AyahCount + 1);
+        
+        var ayahs = await GetAyahsBySurahIdAsync(randomSurah.Id);
+        return ayahs.FirstOrDefault(a => a.AyahNumber == randomAyahNumber) ?? ayahs.First();
+    }
 }

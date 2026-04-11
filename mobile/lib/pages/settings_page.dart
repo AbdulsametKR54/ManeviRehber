@@ -25,7 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   final PrayerService _prayerService = PrayerService();
 
   Map<String, dynamic>? _userData;
-  String _locationName = '...'; 
+  String _locationName = '...';
   bool _isLoadingData = true;
 
   bool _enableReminder15Min = true;
@@ -93,22 +93,22 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mounted) {
       setState(() {
         _userData = results[0] as Map<String, dynamic>;
-        _locationName = (results[1] as String?) ?? ''; 
+        _locationName = (results[1] as String?) ?? '';
         _isLoadingData = false;
       });
     }
   }
 
   String _getLanguageDisplay(String? langCode) {
-    switch (langCode?.toUpperCase()) {
-      case 'TR':
-        return 'Türkçe';
-      case 'EN':
-        return 'English';
-      case 'AR':
-        return 'العربية';
+    switch (langCode?.toLowerCase()) {
+      case 'tr':
+        return '🇹🇷 Türkçe';
+      case 'en':
+        return '🇬🇧 English';
+      case 'ar':
+        return '🇸🇦 العربية';
       default:
-        return 'Türkçe (Varsayılan)';
+        return '🇹🇷 Türkçe';
     }
   }
 
@@ -188,21 +188,24 @@ class _SettingsPageState extends State<SettingsPage> {
                     context,
                     l10n.settingsReminder15Min,
                     _enableReminder15Min,
-                    onChanged: (v) => _toggleNotificationSetting('enable_prayer_reminder', v),
+                    onChanged: (v) =>
+                        _toggleNotificationSetting('enable_prayer_reminder', v),
                   ),
                   const Divider(height: 24, thickness: 0.5),
                   _buildSwitchItem(
                     context,
                     l10n.settingsAthanSound,
                     _enableAthanSound,
-                    onChanged: (v) => _toggleNotificationSetting('enable_athan_sound', v),
+                    onChanged: (v) =>
+                        _toggleNotificationSetting('enable_athan_sound', v),
                   ),
                   const Divider(height: 24, thickness: 0.5),
                   _buildSwitchItem(
                     context,
                     "Namaz Vaktini Bildirimde Göster", // Widget toggle
                     _enablePrayerWidget,
-                    onChanged: (v) => _toggleNotificationSetting('enable_prayer_widget', v),
+                    onChanged: (v) =>
+                        _toggleNotificationSetting('enable_prayer_widget', v),
                   ),
                 ],
               ),
@@ -216,7 +219,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildDropdownItem(
                     context: context,
                     label: l10n.languageTitle,
-                    value: _getLanguageDisplay(Localizations.localeOf(context).languageCode),
+                    value: _getLanguageDisplay(
+                      Localizations.localeOf(context).languageCode,
+                    ),
                     onTap: () => _showLanguageDialog(context),
                   ),
                   const Divider(height: 24, thickness: 0.5),
@@ -227,7 +232,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const LocationSelectionPage()),
+                        MaterialPageRoute(
+                          builder: (context) => const LocationSelectionPage(),
+                        ),
                       );
                     },
                   ),
@@ -249,8 +256,16 @@ class _SettingsPageState extends State<SettingsPage> {
                           Text(l10n.settingsTheme, style: textTheme.bodyLarge),
                           SegmentedButton<ThemeMode>(
                             segments: [
-                              ButtonSegment(value: ThemeMode.light, label: Text(l10n.settingsThemeLight), icon: const Icon(Icons.light_mode_outlined)),
-                              ButtonSegment(value: ThemeMode.dark, label: Text(l10n.settingsThemeDark), icon: const Icon(Icons.dark_mode_outlined)),
+                              ButtonSegment(
+                                value: ThemeMode.light,
+                                label: Text(l10n.settingsThemeLight),
+                                icon: const Icon(Icons.light_mode_outlined),
+                              ),
+                              ButtonSegment(
+                                value: ThemeMode.dark,
+                                label: Text(l10n.settingsThemeDark),
+                                icon: const Icon(Icons.dark_mode_outlined),
+                              ),
                             ],
                             selected: {themeManager.themeMode},
                             onSelectionChanged: (Set<ThemeMode> newSelection) {
@@ -277,12 +292,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
               _buildLinkItem(context, l10n.settingsAbout, onTap: () {}),
               _buildLinkItem(context, l10n.settingsPrivacy, onTap: () {}),
-              
+
               const SizedBox(height: 48),
               Center(
                 child: Text(
                   l10n.versionInfo("1.0.0"),
-                  style: textTheme.labelSmall?.copyWith(color: colorScheme.outline),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.outline,
+                  ),
                 ),
               ),
             ],
@@ -302,7 +319,11 @@ class _SettingsPageState extends State<SettingsPage> {
           backgroundColor: colorScheme.primary,
           child: Text(
             (data?['name'] ?? data?['Name'] ?? 'U')[0].toUpperCase(),
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
+            ),
           ),
         ),
         const SizedBox(width: 16),
@@ -311,7 +332,7 @@ class _SettingsPageState extends State<SettingsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                data?['name'] ?? data?['Name'] ?? 'Hesabım', 
+                data?['name'] ?? data?['Name'] ?? 'Hesabım',
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -319,7 +340,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                data?['email'] ?? '...', 
+                data?['email'] ?? '...',
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.outline,
                   fontFamily: 'Manrope',
@@ -332,7 +353,11 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildCardSection({required BuildContext context, required String title, required List<Widget> items}) {
+  Widget _buildCardSection({
+    required BuildContext context,
+    required String title,
+    required List<Widget> items,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,10 +365,10 @@ class _SettingsPageState extends State<SettingsPage> {
         Padding(
           padding: const EdgeInsets.only(left: 8, bottom: 8),
           child: Text(
-            title.toUpperCase(), 
+            title.toUpperCase(),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: colorScheme.primary.withValues(alpha: 0.7), 
-              fontWeight: FontWeight.bold, 
+              color: colorScheme.primary.withValues(alpha: 0.7),
+              fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
               fontSize: 12,
             ),
@@ -353,21 +378,26 @@ class _SettingsPageState extends State<SettingsPage> {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            ),
           ),
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: items,
-            ),
+            child: Column(children: items),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDropdownItem({required BuildContext context, required String label, required String value, required VoidCallback onTap}) {
+  Widget _buildDropdownItem({
+    required BuildContext context,
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -376,12 +406,26 @@ class _SettingsPageState extends State<SettingsPage> {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(border: Border.all(color: colorScheme.outlineVariant), borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+            border: Border.all(color: colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(label, style: const TextStyle(fontSize: 14)),
-              Row(children: [Text(value, style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold)), const Icon(Icons.chevron_right, size: 20)]),
+              Row(
+                children: [
+                  Text(
+                    value,
+                    style: TextStyle(
+                      color: colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, size: 20),
+                ],
+              ),
             ],
           ),
         ),
@@ -389,48 +433,89 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildSwitchItem(BuildContext context, String label, bool value, {ValueChanged<bool>? onChanged}) {
+  Widget _buildSwitchItem(
+    BuildContext context,
+    String label,
+    bool value, {
+    ValueChanged<bool>? onChanged,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: const TextStyle(fontSize: 14)),
-        Switch(value: value, onChanged: onChanged, activeThumbColor: Theme.of(context).colorScheme.primary),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: Theme.of(context).colorScheme.primary,
+        ),
       ],
     );
   }
 
   Widget _buildColorPalette(BuildContext context, ThemeManager themeManager) {
     final colors = [
-      const Color(0xFF6200EE), const Color(0xFF03DAC6), const Color(0xFFF44336),
-      const Color(0xFF2196F3), const Color(0xFF4CAF50), const Color(0xFFFF9800),
-      const Color(0xFF9C27B0), const Color(0xFFE91E63), const Color(0xFF795548),
+      const Color(0xFF6200EE),
+      const Color(0xFF03DAC6),
+      const Color(0xFFF44336),
+      const Color(0xFF2196F3),
+      const Color(0xFF4CAF50),
+      const Color(0xFFFF9800),
+      const Color(0xFF9C27B0),
+      const Color(0xFFE91E63),
+      const Color(0xFF795548),
       const Color(0xFF607D8B),
     ];
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, mainAxisSpacing: 12, crossAxisSpacing: 12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 5,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+      ),
       itemCount: colors.length,
       itemBuilder: (context, index) {
         final color = colors[index];
-        final isSelected = themeManager.primaryColor.toARGB32() == color.toARGB32();
+        final isSelected =
+            themeManager.primaryColor.toARGB32() == color.toARGB32();
         return GestureDetector(
           onTap: () => themeManager.setPrimaryColor(color),
           child: Container(
             decoration: BoxDecoration(
-              color: color, shape: BoxShape.circle,
-              border: Border.all(color: isSelected ? Colors.white : Colors.transparent, width: 3),
-              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))],
+              color: color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? Colors.white : Colors.transparent,
+                width: 3,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-            child: isSelected ? const Icon(Icons.check, color: Colors.white, size: 18) : null,
+            child: isSelected
+                ? const Icon(Icons.check, color: Colors.white, size: 18)
+                : null,
           ),
         );
       },
     );
   }
 
-  Widget _buildLinkItem(BuildContext context, String label, {required VoidCallback onTap}) {
-    return ListTile(title: Text(label), trailing: const Icon(Icons.chevron_right, size: 20), contentPadding: EdgeInsets.zero, onTap: onTap);
+  Widget _buildLinkItem(
+    BuildContext context,
+    String label, {
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      title: Text(label),
+      trailing: const Icon(Icons.chevron_right, size: 20),
+      contentPadding: EdgeInsets.zero,
+      onTap: onTap,
+    );
   }
 
   void _showLanguageDialog(BuildContext context) {
@@ -439,11 +524,13 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) {
         return SimpleDialog(
           title: Text(AppLocalizations.of(context)!.languageTitle),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           children: [
-            _buildLanguageOption(context, 'TR', 'Türkçe'),
-            _buildLanguageOption(context, 'EN', 'English'),
-            _buildLanguageOption(context, 'AR', 'العربية'),
+            _buildLanguageOption(context, 'TR', '🇹🇷 Türkçe'),
+            _buildLanguageOption(context, 'EN', '🇬🇧 English'),
+            _buildLanguageOption(context, 'AR', '🇸🇦 العربية'),
           ],
         );
       },
@@ -452,8 +539,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildLanguageOption(BuildContext context, String code, String name) {
     final languageManager = LanguageManager();
-    final isSelected = Localizations.localeOf(context).languageCode == code.toLowerCase();
-    
+    final isSelected =
+        Localizations.localeOf(context).languageCode == code.toLowerCase();
+
     return SimpleDialogOption(
       onPressed: () async {
         await languageManager.setLanguage(code.toLowerCase());
@@ -468,8 +556,12 @@ class _SettingsPageState extends State<SettingsPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(name),
-          if (isSelected) 
-            Icon(Icons.check, color: Theme.of(context).colorScheme.primary, size: 20),
+          if (isSelected)
+            Icon(
+              Icons.check,
+              color: Theme.of(context).colorScheme.primary,
+              size: 20,
+            ),
         ],
       ),
     );

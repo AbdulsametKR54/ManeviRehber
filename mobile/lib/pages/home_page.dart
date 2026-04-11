@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../l10n/generated/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/quran_constants.dart';
+import 'hatim_page.dart';
 
 import '../widgets/prayer_card.dart';
 import '../widgets/quote_card.dart';
@@ -14,7 +17,6 @@ import '../services/prayer_service.dart';
 import '../services/quran_service.dart';
 import '../services/daily_content_service.dart';
 import '../services/location_service.dart';
-import '../services/user_progress_service.dart';
 import '../services/notification_service.dart';
 import '../utils/location_manager.dart';
 
@@ -42,12 +44,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   DailyContentModel? _quoteData;
   DailyVerseModel? _progressData;
   String _locationName = '';
+  int _lastHatimPage = 1;
+  String _lastHatimSurahName = '...';
 
   final PrayerService _prayerService = PrayerService();
   final DailyContentService _dailyContentService = DailyContentService();
   final QuranService _quranService = QuranService();
   final LocationService _locationService = LocationService();
-  final UserProgressService _userProgressService = UserProgressService();
 
   @override
   void initState() {
@@ -79,16 +82,29 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     });
 
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final lastPage = prefs.getInt('last_hatim_page') ?? 1;
+      
       final results = await Future.wait([
         _prayerService.getTimes(),
         _dailyContentService.getRandomDailyContent(),
-        _userProgressService.getLocalLastPosition(),
+        _quranService.getRandomAyah(),
         _locationService.getSelectedLocationName(),
+        _quranService.getSurahs(),
       ]);
 
       if (!mounted) return;
 
       setState(() {
+        _lastHatimPage = lastPage;
+        
+        final surahs = results[4] as List<SurahModel>;
+        if (surahs.isNotEmpty) {
+          int surahId = QuranConstants.getSurahByPage(lastPage);
+          final surah = surahs.firstWhere((s) => s.id == surahId, orElse: () => surahs.first);
+          _lastHatimSurahName = surah.turkishName;
+        }
+
         _prayerData = results[0] as PrayerTimesModel?;
         _prayerLoadState = _prayerData != null ? LoadState.success : LoadState.error;
 
@@ -99,9 +115,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         _progressLoadState = _progressData != null ? LoadState.success : LoadState.error;
 
         final locName = results[3] as String?;
-        _locationName = locName ?? ''; // Handled in build
+        _locationName = locName ?? ''; 
 
-        // Schedule notifications if prayer data is available
         if (_prayerData != null) {
           NotificationService().schedulePrayerNotifications(_prayerData!);
         }
@@ -203,13 +218,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 ),
                 const SizedBox(height: 32),
                 LastReadCard(
+                  title: "Sure/Ayet Dinle",
                   model: _progressData,
                   isLoading: _progressLoadState == LoadState.loading,
+                  icon: Icons.play_arrow,
                   onTap: () async {
                     if (_progressData == null || _progressData!.surahId == null) return;
                     
-                    // Show loading overlay or handle it in details page
-                    // For now, fetch surahs and navigate
                     final List<SurahModel> surahs = await _quranService.getSurahs();
                     if (surahs.isEmpty) return;
                     
@@ -229,6 +244,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         ),
                       );
                     }
+                  },
+                ),
+                const SizedBox(height: 16),
+                LastReadCard(
+                  title: "Hatim: Kaldığın Yer",
+                  subtitle: "$_lastHatimSurahName Suresi – Sayfa $_lastHatimPage",
+                  icon: Icons.menu_book,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HatimPage(initialPage: _lastHatimPage),
+                      ),
+                    ).then((_) => _fetchData()); // Refresh progress when returning
                   },
                 ),
                 const SizedBox(height: 32),

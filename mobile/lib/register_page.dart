@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'widgets/auth_widgets.dart';
+import 'constants/app_constants.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -15,7 +16,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final AuthService _authService = AuthService();
-  
+
   String _selectedLanguage = 'TR';
   bool _isLoading = false;
 
@@ -34,18 +35,18 @@ class _RegisterPageState extends State<RegisterPage> {
     if (result["id"] != null) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.registerSuccess)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.registerSuccess)));
         Navigator.pop(context);
       }
     } else {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
         final errorMessage = result["error"] ?? l10n.registerFail;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage.toString())));
       }
     }
   }
@@ -112,9 +113,14 @@ class _RegisterPageState extends State<RegisterPage> {
                             FormLabel(label: l10n.language),
                             const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                color: colorScheme.surfaceVariant.withValues(alpha: 0.5),
+                                color: colorScheme.surfaceVariant.withValues(
+                                  alpha: 0.5,
+                                ),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: DropdownButtonHideUnderline(
@@ -137,10 +143,21 @@ class _RegisterPageState extends State<RegisterPage> {
                                     });
                                   },
                                   items: <String>['TR', 'EN', 'AR']
-                                      .map<DropdownMenuItem<String>>((String value) {
+                                      .map<DropdownMenuItem<String>>((
+                                        String value,
+                                      ) {
+                                        String flag = '🇹🇷';
+                                        if (value == 'EN') flag = '🇬🇧';
+                                        if (value == 'AR') flag = '🇸🇦';
                                         return DropdownMenuItem<String>(
                                           value: value,
-                                          child: Text(value),
+                                          child: Row(
+                                            children: [
+                                              Text(flag),
+                                              const SizedBox(width: 8),
+                                              Text(value),
+                                            ],
+                                          ),
                                         );
                                       })
                                       .toList(),
@@ -149,7 +166,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             const SizedBox(height: 32),
                             PrimaryButton(
-                              text: _isLoading ? l10n.registering : l10n.registerButton,
+                              text: _isLoading
+                                  ? l10n.registering
+                                  : l10n.registerButton,
                               onTap: _isLoading ? null : _handleRegister,
                             ),
                           ],
@@ -170,12 +189,19 @@ class _RegisterPageState extends State<RegisterPage> {
           Positioned(
             top: 16,
             right: 16,
-            child: SafeArea(child: const ThemeToggleButton()),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  const LanguageToggleButton(),
+                  const SizedBox(width: 8),
+                  const ThemeToggleButton(),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
-
   }
 }
 
@@ -206,7 +232,7 @@ class RegisterHeader extends StatelessWidget {
             ],
           ),
           child: Image.asset(
-            'assets/logo/Manevi-Rehber-Icon.png',
+            AppConstants.appLogo,
             width: 56,
             height: 56,
             fit: BoxFit.contain,
@@ -227,7 +253,11 @@ class RegisterHeader extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           l10n.registerWelcome,
-          style: TextStyle(fontSize: 14, color: colorScheme.outline, height: 1.5),
+          style: TextStyle(
+            fontSize: 14,
+            color: colorScheme.outline,
+            height: 1.5,
+          ),
           textAlign: TextAlign.center,
         ),
       ],

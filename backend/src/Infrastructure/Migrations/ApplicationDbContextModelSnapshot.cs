@@ -113,6 +113,51 @@ namespace Infrastructure.Migrations
                     b.ToTable("DailyContentCategories", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Favorite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("AyahNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContentArabic")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContentText")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PageNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SurahId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Favorites");
+                });
+
             modelBuilder.Entity("Domain.Entities.Log", b =>
                 {
                     b.Property<Guid>("Id")
